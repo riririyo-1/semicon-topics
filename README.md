@@ -531,7 +531,7 @@ flowchart TD
   ```shell
   cat /etc/passwd
   ```
-  ![alt text](image.png)
+  ![image](https://github.com/user-attachments/assets/e9443f47-c6bc-42f7-bfbc-e2c9bf91f24e)
   権限がついている先はPostgreSQLだった。
   - docker-compose.ymlのdbセクションに以下を追加
   ```yaml
