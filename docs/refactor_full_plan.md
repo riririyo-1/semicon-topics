@@ -212,6 +212,42 @@ flowchart TD
 
   ※ pest_tag（害虫タグ）機能は、マイルストーン3以降で「半導体TOPICS用の新しいカテゴリ・タグ機能」として再設計・実装予定
 
+### 【補足】OpenAPI/Swaggerの導入方針
+
+- API（Node.js/Express/TypeScript）側でOpenAPI/Swagger UIを導入することで、API仕様の自動ドキュメント化・型安全性向上・フロントエンド/AIエージェントとの連携が容易になります。
+- 導入手順（例）:
+  1. `api/package.json`に`swagger-ui-express`と`swagger-jsdoc`を追加
+     - `npm install swagger-ui-express swagger-jsdoc`
+  2. `api/src/index.ts`でswagger-jsdocでスキーマを自動生成し、swagger-ui-expressで`/api-docs`エンドポイントを追加
+     - 例:
+       ```ts
+       import swaggerUi from "swagger-ui-express";
+       import swaggerJSDoc from "swagger-jsdoc";
+       const swaggerSpec = swaggerJSDoc({
+         definition: {
+           openapi: "3.0.0",
+           info: { title: "Semicon API", version: "1.0.0" },
+         },
+         apis: ["./src/index.ts"], // JSDocコメントから自動生成
+       });
+       app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+       ```
+  3. 各APIエンドポイントにJSDoc形式でOpenAPIコメントを追加
+     - 例:
+       ```ts
+       /**
+        * @openapi
+        * /api/articles:
+        *   get:
+        *     summary: 記事一覧取得
+        *     responses:
+        *       200:
+        *         description: 記事リスト
+        */
+       ```
+  4. ブラウザで`/api-docs`にアクセスするとSwagger UIでAPI仕様が確認できる
+
+- これにより、API仕様の自動ドキュメント化・型安全性向上・フロントエンド/AIエージェントとの連携が容易になります。
 ---
 
 ### マイルストーン2：pipeline層のクリーンアーキテクチャ徹底・AI連携のinterface化
