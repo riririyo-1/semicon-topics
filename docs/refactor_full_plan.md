@@ -269,16 +269,12 @@ flowchart TD
      - 例: `POST /api/jobs/start`, `GET /api/jobs/{job_id}/status`
      - ジョブ情報はDB（例: jobsテーブル）で管理
      - DBスキーマ例: `id, type, status, started_at, finished_at, result`
-  5. **テスト用ダミーLLM実装**
-     - テスト用に「決まった要約・ラベル・タグを返す」ダミーLLMクラスを作成
-     - interfaceの差し替えで本番/テストを切り替え
-  6. **ユースケース・APIのテスト作成・実行**
+  5. **ユースケース・APIのテスト作成・実行**
      - `pipeline/tests/`配下にユースケース・APIのテストを追加
      - テスト実行コマンド例: `pytest pipeline/tests/`
      - ジョブ管理API・AI連携の正常系/異常系を網羅
 - [確認内容]
   - pipeline層の各ユースケース（記事クロール・要約・タグ付け・カテゴリ分け）がinterface経由でAI/DBにアクセスしている
-  - LLM連携部分が差し替え可能（本番/ダミーLLMで切り替えテスト）
   - ジョブ管理・進捗取得APIが動作し、DBにジョブ履歴が記録される
   - すべてのテストがパスすること
 

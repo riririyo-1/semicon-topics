@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query
 from typing import Optional
 from datetime import date
+import uuid
 
 router = APIRouter()
 from fastapi.responses import JSONResponse
@@ -9,7 +10,6 @@ from fastapi import status
 from fastapi import FastAPI
 
 app = FastAPI()
-app.include_router(router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: FastAPIRequest, exc: Exception):
@@ -25,6 +25,32 @@ from usecase.tag_articles import tag_articles
 
 from fastapi import Request
 from fastapi import Body
+
+# ジョブ管理（メモリ上の簡易実装）
+job_store = {}
+
+@router.post("/jobs/start")
+def start_job(body: dict = Body(...)):
+    """
+    バッチ/AI処理のジョブを開始し、ジョブIDを返す
+    """
+    job_id = str(uuid.uuid4())
+    job_type = body.get("type", "summarize")
+    job_store[job_id] = {"status": "running", "type": job_type}
+    # 実際のバッチ処理は非同期で実装する想定
+    # ここでは即時完了とする
+    job_store[job_id]["status"] = "success"
+    return {"job_id": job_id, "status": job_store[job_id]["status"]}
+
+@router.get("/jobs/{job_id}/status")
+def get_job_status(job_id: str):
+    """
+    ジョブIDで進捗・状態を取得
+    """
+    job = job_store.get(job_id)
+    if not job:
+        return {"status": "not_found"}
+    return {"job_id": job_id, "status": job["status"], "type": job["type"]}
 
 @router.get("/health")
 def health_check():
@@ -67,3 +93,6 @@ def tag(body: dict = Body(...)):
         return {"status": "ok", **result}
     except Exception as e:
         return {"status": "error", "error": str(e)}
+
+
+app.include_router(router)

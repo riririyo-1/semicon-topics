@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from typing import Tuple, Dict
+from typing import Tuple, List
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain_community.chat_models import ChatOpenAI
@@ -19,7 +19,7 @@ class OpenAILLMService(LLMInterface):
             max_tokens=512,
         )
 
-    def generate_summary_and_labels(self, article_text: str) -> Tuple[str, list]:
+    def generate_summary_and_labels(self, article_text: str) -> Tuple[str, List[str]]:
         prompt_summary = PromptTemplate(
             input_variables=["article_text"],
             template="次の文章を200字以内で要約して。語尾は断定形で: {article_text}",
@@ -49,3 +49,26 @@ class OpenAILLMService(LLMInterface):
         except Exception as e:
             print(f"[ERROR] OpenAILLMService.generate_summary_and_labels failed: {e}")
             return "", []
+
+    def generate_categories(self, article_text: str) -> List[str]:
+        prompt = PromptTemplate(
+            input_variables=["article_text"],
+            template=(
+                "次の文章を大カテゴリ・小カテゴリに分類し、カテゴリ名を日本語で、JSON配列で返してください。"
+                "大カテゴリは、（経済・政治・技術・社会）"
+                "小カテゴリは、（先端研究、生産技術、買収、企業の動き、国の動き、教育）"
+                "\n文章: {article_text}"
+            ),
+        )
+        chain = LLMChain(llm=self.llm, prompt=prompt, output_key="categories")
+        try:
+            out = chain({'article_text': article_text})
+            categories_json = out.get('categories', '').strip()
+            import json
+            categories = json.loads(categories_json)
+            if not isinstance(categories, list):
+                categories = []
+            return categories
+        except Exception as e:
+            print(f"[ERROR] OpenAILLMService.generate_categories failed: {e}")
+            return []

@@ -2,7 +2,7 @@ import os
 import requests
 import json
 import time
-from typing import Tuple, Dict
+from typing import Tuple, List
 from .llm_interface import LLMInterface
 
 def ensure_ollama_model(max_retries: int = 3, wait_sec: int = 10):
@@ -56,7 +56,7 @@ class OllamaLLMService(LLMInterface):
         # OpenAI互換: result["choices"][0]["message"]["content"]
         return result["choices"][0]["message"]["content"]
 
-    def generate_summary_and_labels(self, article_text: str) -> Tuple[str, list]:
+    def generate_summary_and_labels(self, article_text: str) -> Tuple[str, List[str]]:
         prompt = (
             f"次の文章を200字以内で要約して。語尾は断定形で:\n{article_text}\n"
             "その要約から、登場する企業、業界、分類を表す2～10個の単語または短いフレーズをカンマ区切りで抽出し、"
@@ -73,3 +73,30 @@ class OllamaLLMService(LLMInterface):
         except Exception as e:
             print(f"[ERROR] OllamaLLMService.generate_summary_and_labels failed: {e}")
             return "", []
+
+    def generate_categories(self, article_text: str) -> List[str]:
+        prompt = (
+            f"次の文章を大カテゴリ・小カテゴリに分類してください。"
+            f"カテゴリ名を日本語で、最大5つまでJSON配列で返してください。\n文章: {article_text}"
+        )
+        try:
+            content = self._chat(prompt)
+            categories = json.loads(content)
+            if not isinstance(categories, list):
+                categories = []
+            return categories
+        except Exception as e:
+            print(f"[ERROR] OllamaLLMService.generate_categories failed: {e}")
+            return []
+
+    def generate_monthly_summary(self, articles: List[str]) -> str:
+        prompt = (
+            "以下は今月の主要な記事リストです。全体を要約し、月の動向・ポイントを200字以内でまとめてください。\n"
+            + "\n\n".join(articles)
+        )
+        try:
+            content = self._chat(prompt)
+            return content.strip()
+        except Exception as e:
+            print(f"[ERROR] OllamaLLMService.generate_monthly_summary failed: {e}")
+            return ""
