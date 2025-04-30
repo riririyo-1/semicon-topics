@@ -23,7 +23,7 @@ const swaggerSpec = swaggerJSDoc({
     openapi: "3.0.0",
     info: { title: "Semicon API", version: "1.0.0" },
   },
-  apis: ["./src/**/*.ts", "./dist/**/*.js"],
+  apis: ["./src/**/*.ts", "./src/topics.swagger.ts", "./dist/**/*.js"],
 });
 
 app.use(
@@ -137,12 +137,12 @@ app.get("/api/articles", async (req: Request, res: Response) => {
       paramIdx++;
     }
     if (dateFrom) {
-      where.push(`created_at >= $${paramIdx}`);
+      where.push(`created_at::date >= $${paramIdx}`);
       params.push(dateFrom);
       paramIdx++;
     }
     if (dateTo) {
-      where.push(`created_at <= $${paramIdx}`);
+      where.push(`created_at::date <= $${paramIdx}`);
       params.push(dateTo);
       paramIdx++;
     }
@@ -397,6 +397,484 @@ app.post("/api/crawl", async (req: Request, res: Response) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /api/topics:
+ *   post:
+ *     summary: 新規TOPICS作成
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               articles:
+ *                 type: array
+ *                 items: { type: object }
+ *               categories:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: 作成成功
+ */
+
+const topicsStore: { [id: string]: any } = {};
+
+/**
+ * PATCH /api/topics/:id/article/:article_id/category
+ * 記事ごとのカテゴリ編集
+ * リクエスト: { main: string, sub: string[] }
+ * レスポンス: { status: "ok" }
+ */
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+// LLM自動分類（ダミー実装）
+app.post("/api/topics/:id/categorize", (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { article_ids } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!Array.isArray(article_ids) || article_ids.length === 0) {
+    return res.status(400).json({ status: "error", error: "article_idsは必須です" });
+  }
+  // ダミー: すべて技術/新製品
+  const categories: { [id: string]: { main: string; sub: string[] } } = {};
+  article_ids.forEach((aid: number) => {
+    categories[aid] = { main: "技術", sub: ["新製品"] };
+    topicsStore[id].categories[aid] = categories[aid];
+  });
+  res.json({ categories });
+});
+
+// テンプレートHTML出力（ダミー実装）
+app.post("/api/topics/:id/export", (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  // ダミー: カテゴリ順で記事タイトルを並べたHTML
+  const cats = topicsStore[id].categories || {};
+  const articles = topicsStore[id].articles || [];
+  let html = "<html><body><h1>" + topicsStore[id].title + "</h1>";
+  type Article = {
+    id: number;
+    title: string;
+    url: string;
+    source: string;
+    published: string;
+    summary: string;
+    labels: string[];
+    thumbnailUrl?: string;
+    categories?: { main: string; sub: string[] };
+  };
+  const grouped: { [main: string]: Article[] } = {};
+  articles.forEach((a: any) => {
+    const cat = cats[a.id]?.main || "未分類";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(a);
+  });
+  Object.keys(grouped).forEach(main => {
+    html += `<h2>${main}</h2><ul>`;
+    grouped[main].forEach(a => {
+      html += `<li>${a.title}</li>`;
+    });
+    html += "</ul>";
+  });
+  html += "</body></html>";
+  topicsStore[id].template_html = html;
+  res.json({ html });
+});
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+
+/**
+ * PATCH /api/topics/:id/article/:article_id/category
+ * 記事ごとのカテゴリ編集
+ * リクエスト: { main: string, sub: string[] }
+ * レスポンス: { status: "ok" }
+ */
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
+
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
+
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+/**
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
+
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
+
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
+
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
+
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+
+/**
+ * @swagger
+ * /api/topics/{id}/categorize:
+ *   post:
+ *     summary: LLM自動分類
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               article_ids:
+ *                 type: array
+ *                 items: { type: integer }
+ *     responses:
+ *       200:
+ *         description: カテゴリ分類結果
+ */
+
+app.post("/api/topics/:id/categorize", (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { article_ids } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!Array.isArray(article_ids) || article_ids.length === 0) {
+    return res.status(400).json({ status: "error", error: "article_idsは必須です" });
+  }
+  // ダミー: すべて技術/新製品
+  const categories: { [id: string]: { main: string; sub: string[] } } = {};
+  article_ids.forEach((aid: number) => {
+    categories[aid] = { main: "技術", sub: ["新製品"] };
+    topicsStore[id].categories[aid] = categories[aid];
+  });
+  res.json({ categories });
+});
+
+
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
+
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
+
+app.post("/api/topics", (req: Request, res: Response) => {
+  const { title, articles, categories } = req.body;
+  if (!title || !Array.isArray(articles) || articles.length === 0) {
+    return res.status(400).json({ status: "error", error: "タイトルと記事は必須です" });
+  }
+  const id = "topics-" + Date.now();
+  topicsStore[id] = {
+    id,
+    title,
+    articles,
+    categories: categories || {},
+    template_html: ""
+  };
+  res.json({ id, status: "ok" });
+});
 
 // ─── Start Server ─────────────────────────────
 

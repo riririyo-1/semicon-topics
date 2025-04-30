@@ -11,6 +11,7 @@ const NAV = [
   { label: "トップページ", href: "/" },
   { label: "記事収集", href: "/crawl" },
   { label: "記事一覧", href: "/articles" },
+  { label: "TOPICS配信", href: "/topics" }, // 追加
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   letterSpacing: 2,
                   borderBottom: "2px solid #047857"
                 }}>
-                  半導体TOPIX
+                  半導体TOPICS
                 </Box>
                 <List sx={{ mt: 2 }}>
                   {NAV.map((n) => (

@@ -286,10 +286,7 @@ flowchart TD
      - `frontend/app/articles/page.tsx` のUI/UXをMaterial UI等で統一
      - 表/カード切替、検索、選択、削除、詳細遷移、タグ・画像・要約表示を実装
      - `frontend/app/articles/[id]/page.tsx` で詳細ページのUI/UXも統一
-     - デザインガイドラインやFigma等の設計資料があれば参照
-  2. **カテゴリ分けボタンの削除・機能統合**
-     - 記事一覧や他画面に存在するカテゴリ分けボタン・UIを削除
-     - 機能はTOPICS配信画面（`frontend/app/topics/page.tsx`）に集約
+     - マウスをホバーした時に、カードの周りがうっすら青く光る。
   3. **TOPICS配信画面の新設・機能実装**
      - `frontend/app/topics/page.tsx` を新規作成またはリファクタ
      - 記事選択、カテゴリ分け（大カテゴリ・小カテゴリ）、配信テンプレ出力のUI/UXを実装
