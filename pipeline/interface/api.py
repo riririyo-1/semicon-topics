@@ -22,7 +22,6 @@ from usecase.crawl_articles import crawl_articles
 from repository.db import get_db_conn
 from usecase.summarize_articles import summarize_articles
 from usecase.tag_articles import tag_articles
-from usecase.categorize_pest_articles import categorize_pest_articles
 
 from fastapi import Request
 from fastapi import Body
@@ -66,33 +65,5 @@ def tag(body: dict = Body(...)):
         limit = body.get("limit", 20)
         result = tag_articles(limit=limit)
         return {"status": "ok", **result}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@router.post("/pest_tag")
-def pest_tag(body: dict = Body(...)):
-    try:
-        limit = body.get("limit", 20)
-        result = categorize_pest_articles(limit=limit)
-        return {"status": "ok", **result}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@router.post("/categorize")
-def categorize(body: dict = Body(...)):
-    """
-    記事内容をLLMでPEST大カテゴリ・小カテゴリ推論
-    リクエスト: { id, title, summary, labels }
-    レスポンス: { pest_tags: {P:[],E:[],S:[],T:[]} }
-    """
-    try:
-        from service.summarizer import generate_pest_tags
-        # summary優先、なければtitle+labelsで生成
-        summary = body.get("summary") or ""
-        title = body.get("title") or ""
-        labels = body.get("labels") or []
-        text = summary if summary else f"{title} {' '.join(labels)}"
-        pest_tags = generate_pest_tags(text)
-        return {"pest_tags": pest_tags}
     except Exception as e:
         return {"status": "error", "error": str(e)}

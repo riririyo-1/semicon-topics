@@ -3,19 +3,19 @@
 import React, { useState } from "react";
 import { Box, Typography, Button, CircularProgress, Alert, Stack } from "@mui/material";
 
-type BatchType = "summarize" | "tag" | "pest_tag";
+type BatchType = "summarize";
 
 export default function SummarizePage() {
   const [loading, setLoading] = useState<BatchType | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleBatch = async (type: BatchType) => {
-    setLoading(type);
+  const handleBatch = async () => {
+    setLoading("summarize");
     setResult(null);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/${type}`, {
+      const res = await fetch(`/api/summarize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ limit: 20 }),
@@ -41,25 +41,9 @@ export default function SummarizePage() {
           variant="contained"
           color="primary"
           disabled={loading !== null}
-          onClick={() => handleBatch("summarize")}
+          onClick={handleBatch}
         >
           要約生成
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          disabled={loading !== null}
-          onClick={() => handleBatch("tag")}
-        >
-          タグ生成
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
-          disabled={loading !== null}
-          onClick={() => handleBatch("pest_tag")}
-        >
-          PESTタグ生成
         </Button>
         {loading && <CircularProgress size={24} />}
       </Stack>

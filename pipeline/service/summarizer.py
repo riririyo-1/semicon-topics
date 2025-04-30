@@ -20,6 +20,3 @@ _llm = get_llm_service()
 
 def generate_summary_and_labels(article_text: str) -> Tuple[str, list]:
     return _llm.generate_summary_and_labels(article_text)
-
-def generate_pest_tags(article_text: str) -> Dict[str, list]:
-    return _llm.generate_pest_tags(article_text)

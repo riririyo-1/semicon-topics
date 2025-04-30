@@ -9,7 +9,6 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Link from "next/link";
 
-type PestTags = { P: string[]; E: string[]; S: string[]; T: string[]; };
 type Article = {
   id: number;
   title: string;
@@ -18,7 +17,6 @@ type Article = {
   published: string;
   summary: string;
   labels: string[];
-  pest_tags: PestTags;
   thumbnailUrl?: string;
 };
 
@@ -142,8 +140,6 @@ export default function ArticlesPage() {
                     <TableCell sx={{ color: theme.palette.text.primary }}>出展元</TableCell>
                     <TableCell sx={{ color: theme.palette.text.primary }}>要約</TableCell>
                     <TableCell sx={{ color: theme.palette.text.primary }}>ラベル</TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary }}>PEST大カテゴリ</TableCell>
-                    <TableCell sx={{ color: theme.palette.text.primary }}>小カテゴリ</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -177,40 +173,6 @@ export default function ArticlesPage() {
                           {a.labels && a.labels.map((label) => (
                             <Chip key={label} label={label} size="small" sx={{ mr: 0.5, mb: 0.5, bgcolor: chipBg, color: chipColor }} />
                           ))}
-                        </TableCell>
-                        <TableCell>
-                          {a.pest_tags && Object.entries(a.pest_tags).map(([cat, tags]) =>
-                            tags && tags.length > 0 ? (
-                              <Chip
-                                key={cat}
-                                label={cat}
-                                size="small"
-                                sx={{
-                                  mr: 0.5,
-                                  bgcolor: cat === "P" ? "#fee2e2" : cat === "E" ? "#fef9c3" : cat === "S" ? "#d1fae5" : "#e0e7ff",
-                                  color: cat === "P" ? "#b91c1c" : cat === "E" ? "#b45309" : cat === "S" ? "#047857" : "#3730a3",
-                                  fontWeight: 700
-                                }}
-                              />
-                            ) : null
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {a.pest_tags && Object.entries(a.pest_tags).flatMap(([cat, tags]) =>
-                            tags.map((t) => (
-                              <Chip
-                                key={cat + t}
-                                label={t}
-                                size="small"
-                                sx={{
-                                  mr: 0.5, mb: 0.5,
-                                  bgcolor: "#fff",
-                                  color: "#222",
-                                  border: "1px solid #e5e7eb"
-                                }}
-                              />
-                            ))
-                          )}
                         </TableCell>
                       </TableRow>
                     ))
@@ -266,23 +228,6 @@ export default function ArticlesPage() {
                           ))}
                         </Stack>
                         <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                          {a.pest_tags && Object.entries(a.pest_tags).map(([cat, tags]) =>
-                            Array.isArray(tags) && tags.length > 0 ? (
-                              <Chip
-                                key={cat}
-                                label={cat + ": " + (tags as string[]).join(", ")}
-                                size="small"
-                                sx={{
-                                  bgcolor: cat === "P" ? "#fee2e2" : cat === "E" ? "#fef9c3" : cat === "S" ? "#d1fae5" : "#e0e7ff",
-                                  color: cat === "P" ? "#b91c1c" : cat === "E" ? "#b45309" : cat === "S" ? "#047857" : "#3730a3",
-                                  fontWeight: 700,
-                                  fontSize: 12,
-                                  height: 22,
-                                  mr: 0.5, mb: 0.5
-                                }}
-                              />
-                            ) : null
-                          )}
                         </Stack>
                         <Stack direction="row" spacing={1} mt={1}>
                           <Link href={`/articles/${a.id}`} passHref legacyBehavior>

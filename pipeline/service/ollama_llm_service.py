@@ -73,22 +73,3 @@ class OllamaLLMService(LLMInterface):
         except Exception as e:
             print(f"[ERROR] OllamaLLMService.generate_summary_and_labels failed: {e}")
             return "", []
-
-    def generate_pest_tags(self, article_text: str) -> Dict[str, list]:
-        prompt = (
-            "次の文章をPEST分析（P:政治, E:経済, S:社会, T:技術）に基づき分類し、"
-            "各カテゴリごとに小カテゴリタグ（2～5個/カテゴリ、なければ空配列）を日本語で抽出してください。"
-            "出力は必ず以下のJSON形式で：\n"
-            "{\"P\": [\"...\"], \"E\": [\"...\"], \"S\": [\"...\"], \"T\": [\"...\"]}\n"
-            f"文章: {article_text}"
-        )
-        try:
-            content = self._chat(prompt)
-            pest_tags = json.loads(content)
-            for k in ["P", "E", "S", "T"]:
-                if k not in pest_tags or not isinstance(pest_tags[k], list):
-                    pest_tags[k] = []
-            return pest_tags
-        except Exception as e:
-            print(f"[ERROR] OllamaLLMService.generate_pest_tags failed: {e}")
-            return {"P": [], "E": [], "S": [], "T": []}

@@ -16,7 +16,6 @@ const RSS_SOURCES = [
   { key: "mynavi_techplus", label: "マイナビテック＋" },
 ];
 
-type PestTags = { P: string[]; E: string[]; S: string[]; T: string[]; };
 type Article = {
   id: number;
   title: string;
@@ -25,7 +24,6 @@ type Article = {
   published: string;
   summary: string;
   labels: string[];
-  pest_tags: PestTags;
 };
 
 export default function CrawlPage() {
@@ -37,7 +35,7 @@ export default function CrawlPage() {
   const [error, setError] = useState<string | null>(null);
 
   // AIバッチ
-  const [batchLoading, setBatchLoading] = useState<"summarize" | "pest_tag" | null>(null);
+  const [batchLoading, setBatchLoading] = useState<"summarize" | null>(null);
   const [batchResult, setBatchResult] = useState<string | null>(null);
 
   // 記事一覧
@@ -93,11 +91,11 @@ export default function CrawlPage() {
     }
   };
 
-  const handleBatch = async (type: "summarize" | "pest_tag") => {
-    setBatchLoading(type);
+  const handleBatch = async () => {
+    setBatchLoading("summarize");
     setBatchResult(null);
     try {
-      const res = await fetch(`/api/admin/${type === "summarize" ? "summarize" : "pest_tag"}`, {
+      const res = await fetch(`/api/summarize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ limit: 20 }),
@@ -180,20 +178,11 @@ export default function CrawlPage() {
         <Button
           variant="outlined"
           color="primary"
-          onClick={() => handleBatch("summarize")}
+          onClick={handleBatch}
           disabled={batchLoading !== null}
           sx={{ fontWeight: 600 }}
         >
           {batchLoading === "summarize" ? <CircularProgress size={20} /> : "要約・ラベル付け"}
-        </Button>
-        <Button
-          variant="outlined"
-          color="success"
-          onClick={() => handleBatch("pest_tag")}
-          disabled={batchLoading !== null}
-          sx={{ fontWeight: 600 }}
-        >
-          {batchLoading === "pest_tag" ? <CircularProgress size={20} /> : "大カテゴリ・小カテゴリ分け"}
         </Button>
         {batchResult && <Alert severity="info" sx={{ ml: 2 }}>{batchResult}</Alert>}
       </Stack>
@@ -208,8 +197,6 @@ export default function CrawlPage() {
               <TableCell sx={{ color: theme.palette.text.primary }}>出展元</TableCell>
               <TableCell sx={{ color: theme.palette.text.primary }}>要約</TableCell>
               <TableCell sx={{ color: theme.palette.text.primary }}>ラベル</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>PEST大カテゴリ</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>小カテゴリ</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -236,46 +223,6 @@ export default function CrawlPage() {
                     {a.labels && a.labels.map((label) => (
                       <Chip key={label} label={label} size="small" sx={{ mr: 0.5, mb: 0.5, bgcolor: chipBg, color: chipColor }} />
                     ))}
-                  </TableCell>
-                  <TableCell>
-                    {a.pest_tags && Object.entries(a.pest_tags).map(([cat, tags]) =>
-                      tags && tags.length > 0 ? (
-                        <Chip
-                          key={cat}
-                          label={cat}
-                          size="small"
-                          sx={{
-                            mr: 0.5,
-                            bgcolor: cat === "P" ? "#fee2e2"
-                              : cat === "E" ? "#fef9c3"
-                              : cat === "S" ? "#d1fae5"
-                              : "#e0e7ff",
-                            color: cat === "P" ? "#b91c1c"
-                              : cat === "E" ? "#b45309"
-                              : cat === "S" ? "#047857"
-                              : "#3730a3",
-                            fontWeight: 700
-                          }}
-                        />
-                      ) : null
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {a.pest_tags && Object.entries(a.pest_tags).flatMap(([cat, tags]) =>
-                      tags.map((t) => (
-                        <Chip
-                          key={cat + t}
-                          label={t}
-                          size="small"
-                          sx={{
-                            mr: 0.5, mb: 0.5,
-                            bgcolor: "#fff",
-                            color: "#222",
-                            border: "1px solid #e5e7eb"
-                          }}
-                        />
-                      ))
-                    )}
                   </TableCell>
                 </TableRow>
               ))
