@@ -1,0 +1,101 @@
+services:
+  db:
+    image: postgres:16
+    container_name: semicon_db
+    restart: always
+    environment:
+      POSTGRES_USER: semicon_topics
+      POSTGRES_PASSWORD: semiconpass
+      POSTGRES_DB: semicon_topics
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # - ./backend/db/data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    # user: "${UID}:${GID}" # ホストのIDを指定し、PostgreSQLによって/db/dataの所有者がdnsmasqに設定されることを防ぐ
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semicon_topics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: semicon_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgres://semicon_topics:semiconpass@db:5432/semicon_topics
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run dev"
+    volumes:
+      - ./backend:/usr/src/app
+      - backend_node_modules:/usr/src/app/node_modules
+    ports:
+      - "4000:4000"
+
+  frontend:
+    build: ./frontend
+    container_name: semicon_frontend
+    restart: always
+    depends_on:
+      - backend
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run dev"
+    volumes:
+      - ./frontend:/usr/src/app
+      - frontend_node_modules:/usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+
+  api:
+    build: ./api
+    container_name: semicon_api
+    restart: always
+    environment:
+      DATABASE_URL: postgres://semicon_topics:semiconpass@db:5432/semicon_topics
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run build && npm run start"
+    volumes:
+      - ./api/src:/usr/src/app/src
+      - ./api/package.json:/usr/src/app/package.json
+      - ./api/package-lock.json:/usr/src/app/package-lock.json
+      - ./api/tsconfig.json:/usr/src/app/tsconfig.json
+      - api_node_modules:/usr/src/app/node_modules
+    ports:
+      - "4001:4000"
+
+  pipeline:
+    build: ./pipeline
+    container_name: semicon_pipeline
+    restart: always
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: semicon_topics
+      POSTGRES_USER: semicon_topics
+      POSTGRES_PASSWORD: semiconpass
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      LLM_PROVIDER: ${LLM_PROVIDER}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./pipeline:/app
+
+
+volumes:
+  db_data:
+    driver: local
+  backend_node_modules:
+  frontend_node_modules:
+  api_node_modules:

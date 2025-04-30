@@ -1,0 +1,30 @@
+# RSSフィード定義
+# サービス名ごとにリストまたは単一URLで記述
+eetimes:
+  - name: "EE Times Japan"
+    url: "https://rss.itmedia.co.jp/rss/2.0/eetimes.xml"
+itmedia:
+  - name: "ITmedia"
+    url: "https://rss.itmedia.co.jp/rss/2.0/itmedia_all.xml"
+nhk:
+  - name: "NHK"
+    url: "https://www3.nhk.or.jp/rss/news/cat3.xml" # 科学
+  - name: "NHK"
+    url: "https://www3.nhk.or.jp/rss/news/cat5.xml" # 経済
+mynavi_techplus:
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/techplus/enterprise"
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/techplus/technology"
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/techplus/whitepaper"
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/digital/pc"
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/digital/mobile/iphone"
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/digital/mobile/android"
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/digital/kaden"
+  - name: "マイナビ Tech+"
+    url: "https://news.mynavi.jp/rss/digital/gadget"

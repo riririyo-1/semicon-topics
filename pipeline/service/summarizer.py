@@ -1,0 +1,25 @@
+import os
+from dotenv import load_dotenv
+from typing import Tuple, Dict
+from .llm_interface import LLMInterface
+
+# LLM実装のimport
+from .openai_llm_service import OpenAILLMService
+from .ollama_llm_service import OllamaLLMService
+
+load_dotenv()
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "openai").lower()
+
+def get_llm_service() -> LLMInterface:
+    if LLM_PROVIDER == "ollama":
+        return OllamaLLMService()
+    else:
+        return OpenAILLMService()
+
+_llm = get_llm_service()
+
+def generate_summary_and_labels(article_text: str) -> Tuple[str, list]:
+    return _llm.generate_summary_and_labels(article_text)
+
+def generate_pest_tags(article_text: str) -> Dict[str, list]:
+    return _llm.generate_pest_tags(article_text)

@@ -1,0 +1,1 @@
+# interface層初期化
