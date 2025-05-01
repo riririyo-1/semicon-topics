@@ -39,6 +39,8 @@ export default function TopicsPage() {
   const [tableView, setTableView] = useState(true);
   const [topicsId, setTopicsId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [monthlySummary, setMonthlySummary] = useState<string>("");
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const theme = useTheme();
 
   // API: 新規TOPICS作成
@@ -105,9 +107,32 @@ export default function TopicsPage() {
         headers: { "Content-Type": "application/json" }
       });
       const data = await res.json();
-      alert("テンプレート出力（ダミー）: " + (data.html ? "HTML取得" : "失敗"));
+      alert("テンプレート出力: " + (data.html ? "HTML取得" : "失敗"));
     } catch (e: any) {
       setError(e.message || "テンプレート出力に失敗しました");
+    }
+  };
+
+  // API: 月次まとめ自動生成
+  const fetchMonthlySummary = async () => {
+    if (!topicsId) return;
+    setSummaryLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/topics/${topicsId}/summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await res.json();
+      if (data.monthly_summary) {
+        setMonthlySummary(data.monthly_summary);
+      } else {
+        setError(data.error || "月次まとめ生成に失敗しました");
+      }
+    } catch (e: any) {
+      setError(e.message || "月次まとめ生成に失敗しました");
+    } finally {
+      setSummaryLoading(false);
     }
   };
 
@@ -407,7 +432,18 @@ export default function TopicsPage() {
       <Stack direction="row" spacing={2} mt={3} mb={2}>
         <Button variant="outlined" onClick={handleLLMAutoCategorize}>LLM自動分類</Button>
         <Button variant="contained" color="primary" onClick={handleExport}>配信テンプレート出力</Button>
+        <Button variant="contained" color="secondary" onClick={fetchMonthlySummary} disabled={!topicsId || summaryLoading}>
+          {summaryLoading ? "生成中..." : "月次まとめ自動生成"}
+        </Button>
       </Stack>
+      {monthlySummary && (
+        <Box sx={{ my: 2, p: 2, border: "1px solid #aaa", borderRadius: 2, background: "#f9f9f9" }}>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary }}>月次まとめ（自動生成）</Typography>
+          <Typography variant="body1" sx={{ color: theme.palette.text.primary, whiteSpace: "pre-line" }}>
+            {monthlySummary}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }

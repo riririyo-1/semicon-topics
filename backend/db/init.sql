@@ -10,4 +10,30 @@ CREATE TABLE IF NOT EXISTS articles (
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS summary TEXT;
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS labels JSONB;
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+-- topicsテーブル
+CREATE TABLE IF NOT EXISTS topics (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  month VARCHAR(7) NOT NULL, -- 例: "2025-05"
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  monthly_summary TEXT
+-- ジョブ管理テーブル
+CREATE TABLE IF NOT EXISTS jobs (
+  id SERIAL PRIMARY KEY,
+  type VARCHAR(50) NOT NULL,
+  status VARCHAR(20) NOT NULL,
+  started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finished_at TIMESTAMP,
+  result TEXT
+);
+);
+
+-- topics_articlesリレーション
+CREATE TABLE IF NOT EXISTS topics_articles (
+  id SERIAL PRIMARY KEY,
+  topics_id INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+  article_id INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  category_main VARCHAR(50),
+  category_sub JSONB
+);
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS published TIMESTAMP;

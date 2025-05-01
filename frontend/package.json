@@ -9,6 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.2",
@@ -25,6 +26,7 @@
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.2",
+    "@types/date-fns": "^2.5.3",
     "jest": "^29.7.0",
     "typescript": "5.8.3"
   }

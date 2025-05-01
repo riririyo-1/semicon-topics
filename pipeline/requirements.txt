@@ -11,3 +11,4 @@ python-dotenv
 langchain_community
 bs4
 python-dateutil
+jinja2

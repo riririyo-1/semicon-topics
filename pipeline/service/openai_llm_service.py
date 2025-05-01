@@ -72,3 +72,21 @@ class OpenAILLMService(LLMInterface):
         except Exception as e:
             print(f"[ERROR] OpenAILLMService.generate_categories failed: {e}")
             return []
+
+    def generate_monthly_summary(self, articles: List[str]) -> str:
+        prompt = PromptTemplate(
+            input_variables=["articles"],
+            template=(
+                "以下は今月の主要な記事リストです。全体を要約し、月の動向・ポイントを400字以内でまとめてください。\n"
+                "{articles}"
+            ),
+        )
+        chain = LLMChain(llm=self.llm, prompt=prompt, output_key="monthly_summary")
+        try:
+            articles_text = "\n\n".join(articles)
+            out = chain({'articles': articles_text})
+            summary = out.get('monthly_summary', '').strip()
+            return summary
+        except Exception as e:
+            print(f"[ERROR] OpenAILLMService.generate_monthly_summary failed: {e}")
+            return ""
