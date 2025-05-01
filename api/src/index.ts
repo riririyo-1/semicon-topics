@@ -435,6 +435,20 @@ app.post("/api/crawl", async (req: Request, res: Response) => {
  *         description: 作成成功
  */
 
+/**
+ * @swagger
+ * /api/topics:
+ *   get:
+ *     summary: TOPICS一覧取得
+ *     responses:
+ *       200:
+ *         description: TOPICSのリスト
+ */
+app.get("/api/topics", (req: Request, res: Response) => {
+  // topicsStoreの全topicsを配列で返す
+  const topics = Object.values(topicsStore);
+  res.json(topics);
+});
 const topicsStore: { [id: string]: any } = {};
 
 /**
@@ -500,6 +514,34 @@ app.post("/api/topics/:id/export", (req: Request, res: Response) => {
   html += "</body></html>";
   topicsStore[id].template_html = html;
   res.json({ html });
+/**
+ * @swagger
+ * /api/topics/{id}/summary:
+ *   post:
+ *     summary: 月次まとめ自動生成
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: TOPICS ID
+ *     responses:
+ *       200:
+ *         description: 月次まとめ生成結果
+ *       500:
+ *         description: エラー
+ */
+app.post("/api/topics/:id/summary", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const pipelineRes = await axios.post(
+      `http://pipeline:8000/topics/${id}/summary`
+    );
+    res.json(pipelineRes.data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 });
   if (!topicsStore[id].categories) topicsStore[id].categories = {};
   topicsStore[id].categories[article_id] = { main, sub: sub || [] };
