@@ -5,6 +5,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain_community.chat_models import ChatOpenAI
 from .llm_interface import LLMInterface
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 class OpenAILLMService(LLMInterface):
     def __init__(self):
@@ -19,6 +20,7 @@ class OpenAILLMService(LLMInterface):
             max_tokens=512,
         )
 
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
     def generate_summary_and_labels(self, article_text: str) -> Tuple[str, List[str]]:
         prompt_summary = PromptTemplate(
             input_variables=["article_text"],
@@ -48,8 +50,11 @@ class OpenAILLMService(LLMInterface):
             return summary, labels
         except Exception as e:
             print(f"[ERROR] OpenAILLMService.generate_summary_and_labels failed: {e}")
-            return "", []
+            # フォールバック処理
+            fallback_summary = article_text[:200] + "..."
+            return fallback_summary, []
 
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
     def generate_categories(self, article_text: str) -> List[str]:
         prompt = PromptTemplate(
             input_variables=["article_text"],
@@ -71,7 +76,8 @@ class OpenAILLMService(LLMInterface):
             return categories
         except Exception as e:
             print(f"[ERROR] OpenAILLMService.generate_categories failed: {e}")
-            return []
+            # フォールバック処理
+            return ["未分類"]
 
     def generate_monthly_summary(self, articles: List[str]) -> str:
         prompt = PromptTemplate(

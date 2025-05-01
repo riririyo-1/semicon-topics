@@ -37,6 +37,49 @@ app.delete('/api/articles', async (req, res) => {
   }
 });
 
+// ジョブ管理APIのエンドポイントを追加
+app.post('/api/jobs/start', async (req, res) => {
+    const { type } = req.body;
+    try {
+        const result = await db.query(
+            'INSERT INTO jobs (type, status) VALUES ($1, $2) RETURNING id',
+            [type, 'pending']
+        );
+        res.json({ jobId: result.rows[0].id });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to start job' });
+    }
+});
+
+app.get('/api/jobs/:jobId/status', async (req, res) => {
+    const { jobId } = req.params;
+    try {
+        const result = await db.query('SELECT * FROM jobs WHERE id = $1', [jobId]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch job status' });
+    }
+});
+
+app.delete('/api/jobs/:jobId', async (req, res) => {
+    const { jobId } = req.params;
+    try {
+        const result = await db.query(
+            'UPDATE jobs SET status = $1 WHERE id = $2 RETURNING *',
+            ['failure', jobId]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to stop job' });
+    }
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

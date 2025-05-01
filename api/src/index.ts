@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { Pool } from "pg";
 import axios from "axios";
+import { check, validationResult } from "express-validator";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
@@ -342,14 +343,25 @@ app.delete("/api/articles", async (req: Request, res: Response) => {
 *       200:
 *         description: バッチ実行結果
 */
-app.post("/api/summarize", async (req: Request, res: Response) => {
-  try {
-    const pipelineRes = await axios.post("http://pipeline:8000/summarize", req.body);
-    res.json(pipelineRes.data);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+app.post(
+  "/api/summarize",
+  [
+    check("limit").isInt({ min: 1 }).withMessage("Limit must be a positive integer"),
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const pipelineRes = await axios.post("http://pipeline:8000/summarize", req.body);
+      res.json(pipelineRes.data);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   }
-});
+);
 
 
 /**
@@ -599,49 +611,7 @@ app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Re
   res.json({ status: "ok" });
 });
 
-/**
-/**
- * @swagger
- * /api/topics/{id}/article/{article_id}/category:
- *   patch:
- *     summary: 記事ごとのカテゴリ編集
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string }
- *         description: TOPICS ID
- *       - in: path
- *         name: article_id
- *         required: true
- *         schema: { type: integer }
- *         description: 記事ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               main:
- *                 type: string
- *               sub:
- *                 type: array
- *                 items: { type: string }
- *     responses:
- *       200:
- *         description: 編集成功
- */
 
-app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
-  const { id, article_id } = req.params;
-  const { main, sub } = req.body;
-  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
-  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
-  if (!topicsStore[id].categories) topicsStore[id].categories = {};
-  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
-  res.json({ status: "ok" });
-});
 /**
  * @swagger
  * /api/topics/{id}/article/{article_id}/category:
@@ -685,7 +655,49 @@ app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Re
   res.json({ status: "ok" });
 });
 
+/**
+/**
+ * @swagger
+ * /api/topics/{id}/article/{article_id}/category:
+ *   patch:
+ *     summary: 記事ごとのカテゴリ編集
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: TOPICS ID
+ *       - in: path
+ *         name: article_id
+ *         required: true
+ *         schema: { type: integer }
+ *         description: 記事ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               main:
+ *                 type: string
+ *               sub:
+ *                 type: array
+ *                 items: { type: string }
+ *     responses:
+ *       200:
+ *         description: 編集成功
+ */
 
+app.patch("/api/topics/:id/article/:article_id/category", (req: Request, res: Response) => {
+  const { id, article_id } = req.params;
+  const { main, sub } = req.body;
+  if (!topicsStore[id]) return res.status(404).json({ status: "error", error: "TOPICS not found" });
+  if (!main) return res.status(400).json({ status: "error", error: "mainカテゴリは必須です" });
+  if (!topicsStore[id].categories) topicsStore[id].categories = {};
+  topicsStore[id].categories[article_id] = { main, sub: sub || [] };
+  res.json({ status: "ok" });
+});
 /**
  * @swagger
  * /api/topics/{id}/article/{article_id}/category:

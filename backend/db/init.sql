@@ -17,15 +17,16 @@ CREATE TABLE IF NOT EXISTS topics (
   month VARCHAR(7) NOT NULL, -- 例: "2025-05"
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   monthly_summary TEXT
--- ジョブ管理テーブル
-CREATE TABLE IF NOT EXISTS jobs (
-  id SERIAL PRIMARY KEY,
-  type VARCHAR(50) NOT NULL,
-  status VARCHAR(20) NOT NULL,
-  started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  finished_at TIMESTAMP,
-  result TEXT
 );
+
+-- ジョブ管理テーブル
+CREATE TABLE jobs (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    progress INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- topics_articlesリレーション
