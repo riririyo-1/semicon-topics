@@ -1,0 +1,444 @@
+rules:
+  - description: "命名規則"
+    scope: "global"
+    enforce: true
+    details: |
+      変数・関数はキャメルケース（例：fetchArticles, articleList）を使用すること。
+      クラス・型はパスカルケース（例：ArticleCardList, TopicItemEditor）を使用すること。
+      ファイル名はケバブケースまたはスネークケース（例：article-table.tsx, topic_store.ts）を使用すること。
+      ディレクトリ名は小文字・複数形（例：components, services, stores）とすること。
+      APIエンドポイントはスネークケース（例：/api/topics, /api/articles/search）とすること。
+
+  - description: "コーディング規約"
+    scope: "global"
+    enforce: true
+    details: |
+      TypeScript/ReactではESLint, Prettier, Material UI（MUI）を推奨する。
+      any型の使用は禁止する。
+      PythonではPEP8を厳守し、すべての関数・メソッド・クラスに型ヒントを必須とする。
+      1関数1責務を徹底し、DRY原則（同じ処理の重複禁止）を守ること。
+      Magic Number（意味のない数値リテラル）の使用は禁止し、定数化すること。
+      例外処理・エラーハンドリングを徹底し、エラー発生時は適切なログ出力・通知を行うこと。
+
+  - description: "AIエージェント利用時の注意点"
+    scope: "global"
+    enforce: true
+    details: |
+      省略や抽象化は禁止し、理由がなければ原文・設計意図を忠実に反映すること。
+      根拠のない自動修正やリファクタリングは禁止する。
+      設計・要件・ルールに必ず基づいて作業を行うこと。
+      ルール・設計・要件に不明点がある場合は、必ずユーザーに確認を取ること。
+
+
+  - description: |
+    **最終的にやりたいこと（要件一覧）**
+
+    - 記事収集
+        - 日付範囲指定でRSSから記事を収集
+        - 日付・出典・タイトル・リンク・サムネイル画像を取得し、DBへ格納する
+        - bs4などで記事本文をLLMに渡し、要約とラベル付けを行う
+        - 記事一覧に表示する
+    - 記事一覧
+        - 記事の一覧を表示する
+        - 表・カード2種の表示
+        - 選択と削除が可能
+        - カードは画像、タイトル、出典、日付、タグが表示され、詳細ボタンと元記事へ飛ぶボタンがある
+        - 検索が可能
+        - 記事をクリックすると、1つの記事ページへ
+        - 記事ページでは、画像、タイトル、出典、日付、タグに加えて要約も見れる。元記事へ飛ぶボタンがある
+    - 記事詳細
+        - 画像・タイトル・出典・日付・タグ・要約・元記事リンク
+    - 半導体TOPICS配信（ここはまだ設計中。いいアイデアがあったら取り入れたい）
+        - TOPICS一覧画面
+        - TOPICSを新規作成（毎月作成を想定）
+        - 全体の記事からその月の記事、ラベルに半導体がついた記事を表示
+        - 毎月の半導体TOPICSに使う記事を選択できるようにする（記事登録ボタン）
+        - 記事を決めたら、カテゴリ分けをする（記事本文をLLMに渡し、カテゴリ分けをする）
+            - 大カテゴリ：政治・経済・社会・技術
+            - 小カテゴリ：買収・製造技術・新製品・国の動き・企業の動き・株価
+    - 配信機能
+        - ここまで出来たら、HTMLなどで出力。
+        - テンプレを用意して、毎月同じ形式で出力可能。
+        - 今月の記事一覧をLLMに投げて、月の動向・TOPICS・ポイントを入れられると尚良い。
+    scope:
+        - /
+    enforce: true
+    details:
+        - 最終的な要件が明確に記述されていること。
+        - 各要件が、記事収集、記事一覧、記事詳細、半導体TOPICS配信、配信機能のカテゴリに分類されていること。
+        - 半導体TOPICS配信に関する要件が、具体的な機能として記述されていること。
+        - 配信機能に関する要件が、出力形式と内容を含めて記述されていること。
+
+  - description: |
+    **配信テンプレのイメージ**
+
+    ～技術戦略コミッティ 半導体動向調査チーム　半導体TOPICS～
+
+    SSS MS事 MSテスト技術開発部 1課 の大森です。
+    今回は○年○月の半導体TOPICSをお送りします。
+
+    今月のまとめ：XXX
+
+    ■ 半導体動向調査チームより
+    ★LSI戦略コミッティ 半導体動向調査チームのポータルサイトが新しくなりました。ぜひご覧ください！
+    https://sonyjpn.sharepoint.com/sites/S110-STR
+    ★今後改善を加えていきたいと思います。ご意見、ご要望などありましたら、ご連絡ください。
+    ★有料ニュースの詳細要望もお受けします。
+    Ryoko.Yamada@sony.com (山田)
+    Ryo.Omori@sony.com (大森)
+
+
+    ■ TOPIX記事
+    ＜世の中の動き＞　：大カテゴリ
+    エヌビディア時価総額3.43兆ドル、再び世界トップに－アップル上回る [bloomberg]
+    - 2024/11/6
+    -  https://www.bloomberg.co.jp/news/articles/2024-11-05/SMHXCKT0AFB400
+    米半導体大手のエヌビディアが、時価総額でアップルを上回り、再び世界トップに立った。エヌビディアの株価は今年183％上昇し、時価総額は2.2兆ドル以上増加した。
+    この上昇は、同社が製品の遅れや成長見通しに対する投資家の懸念を和らげたためだと言われている。エヌビディアは先月、一時的に時価総額トップになったが、すぐにアップルに抜かれていた。
+    しかし、人工知能（AI）に関連した成長への楽観論が株価を押し上げ、再びトップに立った。
+
+    imecが高NA EUV活用でムーアの法則の延命を宣言、ITF Japan 2024 [マイナビニュース]
+    - 2024/11/13
+    -  https://news.mynavi.jp/techplus/article/20241113-3063793/
+    ベルギーの独立系研究機関imecが創立40周年記念の研究成果発表会を開催し、CEO Luc Van den hove氏が基調講演を行った。
+    Van den hove氏は、半導体チップの集積度の向上を示す「ムーアの法則」は、高NA EUV露光装置や2D-FETなどの技術革新により、少なくとも2040年代まで継続できると強調した。
+  scope:
+    - /
+  enforce: true
+  details:
+    - 配信テンプレートのイメージが具体的に記述されていること。
+    - テンプレートには、タイトル、挨拶文、まとめ、チーム紹介、記事セクションが含まれていること。
+    - 記事セクションでは、大カテゴリ、記事タイトル、出典、日付、URL、記事概要が記述されていること。
+    - テンプレートの形式が、HTML出力に適した形式であること。
+
+  - description: |
+    **ディレクトリ構成とAPI役割図**
+
+    ### ディレクトリ構成（主要部分のみ）
+
+    ```
+    semicon_topics2/
+    ├── api/
+    │   └── src/
+    │       └── index.ts
+    ├── backend/
+    │   └── src/
+    ├── frontend/
+    │   └── app/
+    │       ├── articles/
+    │       ├── crawl/
+    │       ├── summarize/
+    │       └── topics/
+    ├── pipeline/
+    │   ├── service/
+    │   ├── usecase/
+    │   └── main.py
+    ├── docs/
+    │   └── refactor_full_plan.md
+    ├── package.json
+    └── ...
+    ```
+  scope:
+    - /
+  enforce: true
+  details:
+    - 主要なディレクトリ構成が示されていること。
+    - 各ディレクトリの役割が明確になっていること。
+    - フロントエンド、バックエンド、API、パイプライン、ドキュメントなどの主要なディレクトリが含まれていること。
+    - ディレクトリ構成が、アプリケーションの機能と設計に沿ったものであること。
+
+  - description: |
+    **ファイル構成案:**
+    Next.js App Router の規約に基づいたファイル構成を定義します。
+    これにより、アプリケーションの構造が明確になり、保守性と拡張性が向上します。
+    各ディレクトリとファイルの役割は以下の通りです。
+
+    - `frontend/app/topics/`: TOPICSリストページと関連機能のディレクトリ
+        - `page.tsx`: TOPICSリストページのルートコンポーネント
+        - `components/`: TOPICSリストページで使用するコンポーネント
+            - `TopicsList.tsx`: TOPICSリストの表示を担当するコンポーネント
+            - `CreateTopicButton.tsx`: 新規TOPICS作成ページへの遷移ボタンコンポーネント
+            - `TopicSearch.tsx`: TOPICSをオートコンプリート検索するコンポーネント
+        - `[id]/`: 特定のTOPICS配信用ディレクトリ（動的ルーティング）
+            - `edit/`: TOPICS編集ページと関連機能のディレクトリ
+                - `page.tsx`: TOPICS編集ページのルートコンポーネント
+                - `components/`: TOPICS編集ページで使用するコンポーネント
+                    - `EditTabs.tsx`: 編集画面のタブを管理するコンポーネント
+                    - `ArticleSelectionTab.tsx`: 「TOPICS選択」タブのコンポーネント
+                        - `ArticleFilter.tsx`: 記事を絞り込むためのフィルターコンポーネント
+                        - `ArticleTable.tsx`: 記事をテーブル形式で表示するコンポーネント
+                        - `ArticleCardList.tsx`: 記事をカード形式で表示するコンポーネント
+                        - `SelectedTopicsList.tsx`: 選択された記事のリストを表示するコンポーネント
+                        - `ArticleSearch.tsx`: 記事をオートコンプリート検索するコンポーネント
+                    - `TemplateOutputTab.tsx`: 「テンプレート出力」タブのコンポーネント
+                        - `SummaryEditor.tsx`: TOPICSのまとめを編集するエリア
+                        - `TopicItemEditor.tsx`: 各記事のカテゴリなどを編集するコンポーネント
+                    - `PreviewTab.tsx`: 「プレビュー」タブのコンポーネント
+    - `frontend/stores/`: Zustandを使用したストア関連ファイルのディレクトリ（新規作成）
+        - `topicStore.ts`: TOPICS編集に関する状態を管理するストア
+    - `frontend/types/`: 型定義ファイルのディレクトリ（必要に応じて）
+        - `index.ts`: 共通で使用する型定義ファイル
+
+    **理由:**
+    - Next.js App Routerの規約に従うことで、ルーティングとコンポーネントの配置が直感的になり、開発効率が向上します。
+    - 機能ごとのディレクトリ分割により、関心の分離が進み、コードの可読性と保守性が高まります。
+    - Zustandのような状態管理ライブラリの導入により、複雑な編集画面の状態管理が容易になります。
+  scope:
+    - frontend/
+  enforce: true
+  details:
+    - ファイル構成は、Next.js App Routerの規約に準拠していること。
+    - 各ディレクトリとファイル名は、提案された命名規則に従っていること。
+    - 関連するコンポーネントは、機能ごとのサブディレクトリに配置されていること。
+    - Zustandストア (`frontend/stores/`) が適切に設定されていること。
+    - 型定義 (`frontend/types/`) が必要に応じて作成されていること。
+
+  - description: |
+    **各ページの機能設計:**
+
+    ### a. TOPICSリストページ (`/topics`)
+
+    - **`frontend/app/topics/page.tsx`**:
+        - **データ取得:** `useSWR` または React Query (`useQuery`) を使用して、`/api/topics` からTOPICSリスト (`Topic[]`) を非同期で取得します。取得中はローディング状態 (`isLoading`) を管理し、エラー発生時にはエラー状態 (`error`) を適切にハンドリングします。
+        - **コンポーネント:**
+            - `CreateTopicButton`: 新規TOPICS作成ページ (`/topics/new/edit`) へのリンクを提供するボタンコンポーネントです。
+            - `TopicsList`: 取得した `topics` データをpropsとして受け取り、リスト表示を担当するコンポーネントです。
+        - **UI:** ページのタイトル（例: `Typography variant="h4"`)、`CreateTopicButton`、`TopicsList` を配置します。データローディング中は `CircularProgress` を表示し、エラー発生時には `Alert` コンポーネントでエラーメッセージを表示します。
+    - **`frontend/app/topics/components/TopicsList.tsx`**:
+        - **Props:** `topics: Topic[]` 型の配列を受け取ります（例: `interface Topic { id: number; title: string; createdAt: string; }`）。
+        - **機能:** 受け取った `topics` 配列を反復処理し、各TOPICSアイテムを `ListItem` や `Card` などのUI要素で表示します。
+        - **UI:** 各TOPICSアイテムは `next/link` を使用して `/topics/[id]/edit` へのリンクとして実装します。MUIの `List` コンポーネントや `Grid` コンポーネントを使用してレイアウトを構築します。各アイテムには、タイトルに加えて最終更新日時などの情報も表示することが望ましいです。
+        - **スタイリング:** 既存のTOPICSリスト表示スタイルを踏襲し、一貫性のあるUIを提供します。
+    - **`frontend/app/topics/components/CreateTopicButton.tsx`**:
+        - **機能:** `/topics/new/edit` へ遷移するための `Link` コンポーネントを内包したMUI `Button` コンポーネント (`variant="contained"`, `startIcon={<AddIcon />}` など) を実装します。
+
+    ### b. TOPICS配信編集ページ (`/topics/[id]/edit`)
+
+    - **`frontend/app/topics/[id]/edit/page.tsx`**:
+        - **ルーティング:** `useParams` フック (`next/navigation`) を使用して、URLから動的な `id` パラメータを取得します。
+        - **状態管理:** `useTopicStore` カスタムフックを使用して、TOPICS編集に関する状態を管理します。
+        - **データ取得/初期化:** `useEffect` フックを使用します。
+            - コンポーネントがマウントされた際、取得した `id` が `'new'` であれば `resetState()` アクションを呼び出してストアを初期化します。そうでなければ、数値に変換した `id` を引数として `loadTopic(Number(id))` アクションを呼び出し、既存のTOPICSデータをロードします。
+            - コンポーネントがアンマウントされる際には、`resetState()` アクションを呼び出してストアの状態をクリーンアップし、メモリリークを防ぎます。
+        - **コンポーネント:** `EditTabs` コンポーネントをレンダリングし、タブ切り替えによる編集画面を提供します。ストアから `isLoading` や `error` の状態を取得し、ローディング中は `CircularProgress` を、エラー発生時は `Alert` コンポーネントを表示します。
+    - **`frontend/app/topics/[id]/edit/components/EditTabs.tsx`**:
+        - **状態管理:** `useTopicStore` カスタムフックから、アクティブなタブの状態 (`activeTab`)、タブ切り替え関数 (`setActiveTab`)、保存処理関数 (`saveTopic`)、保存中のローディング状態 (`isSaving`)、エラー状態 (`error`) を取得します。
+        - **UI:** MUI の `Tabs` コンポーネント (`value={activeTab}`, `onChange={(_, newValue) => setActiveTab(newValue)}`) を使用してタブUIを実装します。各 `Tab` コンポーネント (`label` と `value` を設定) に対応するコンポーネント (`ArticleSelectionTab`, `TemplateOutputTab`, `PreviewTab`) を条件付きでレンダリングします。ページの上部または下部に、保存ボタンとして MUI の `LoadingButton` (`@mui/lab` からインポート、`loading={isSaving}`, `onClick={saveTopic}`) を配置します。
+        - **エラー表示:** `error` 状態が真であれば、`Alert` コンポーネントを表示してユーザーにエラーを通知します。
+
+    ### c. TOPICS選択タブ (`ArticleSelectionTab.tsx`)
+
+    - **状態管理:** `useTopicStore` から記事追加関数 (`addArticles`) を取得します。ローカルな状態として、フィルター条件 (`filters` オブジェクト)、表示形式 (`viewMode: 'table' | 'card'`)、左側リストでの記事選択状態 (`selectedArticleIds: Set<number>`)、取得した記事リスト (`articles: Article[]`)、記事リストのローディング状態 (`isArticleLoading`)、記事リスト取得時のエラー状態 (`articleError`) を `useState` フックで管理します。
+    - **レイアウト:** MUI の `Grid` コンポーネント (`container`, `spacing={2}`) を使用して、画面を左右に分割するレイアウトを構築します。中央部分には、左右のリスト間で記事を移動させるための矢印ボタンを配置する `Grid item xs={1}` を設けます。
+    - **左側 (記事一覧):**
+        - **`ArticleFilter.tsx`**:
+            - **Props:** 初期フィルター値 (`initialFilters`) と、フィルターが変更された際に呼び出すコールバック関数 (`onFilterChange: (newFilters) => void`) を受け取ります。
+            - **UI:** 日付範囲を選択するための UI コンポーネント (`DateRangePicker` または `DatePicker` を2つ使用)、およびラベルを複数選択するための `Autocomplete` コンポーネントを配置します。
+            - **機能:** フィルターの変更を検知し、変更後のフィルター値を `onFilterChange` コールバック関数を通じて親コンポーネントに通知します。APIリクエストの頻度を最適化するため、debounce 処理を適用することを推奨します。
+        - **`ArticleSearch.tsx`**:
+            - **Props:** 記事が選択された際に呼び出すコールバック関数 (`onArticleSelect: (article: Article) => void`) を受け取ります。
+            - **UI:** MUI の `Autocomplete` コンポーネントと `TextField` コンポーネントを組み合わせて、オートコンプリート機能付きの検索入力フィールドを実装します。
+            - **機能:** ユーザーが記事タイトルやキーワードを入力するたびに、入力文字列に基づいて即時検索を実行します（ただし、debounce を適用してAPIリクエスト数を制御します）。検索結果から記事が選択されると、`onArticleSelect` コールバック関数を呼び出します。
+            - **データ取得:** ユーザーが入力した文字列が変更されるたびに、`/api/articles/search?q=検索文字列` エンドポイントを呼び出し、検索候補となる記事リストを取得します。
+        - **表示形式切り替え:** MUI の `ToggleButtonGroup` コンポーネント (`value={viewMode}`, `onChange={(_, newMode) => setViewMode(newMode)}`) を使用して、記事リストの表示形式をテーブル形式とカード形式の間で切り替えるUIを提供します。
+        - **記事リスト表示:**
+            - **データ取得:** `filters` の状態が変更された場合、`useEffect` フック内で `/api/articles` エンドポイントを呼び出し、フィルター条件に合致する記事データを取得します（`useSWR` や独自の fetch 関数を使用）。ページネーションも考慮し、`page` および `limit` パラメータをAPIリクエストに含めます。取得した記事データを `articles` ステートに格納します。
+            - **ローディングとエラー処理:** `isArticleLoading` が真の間は、ローディングインジケータとして `Skeleton` コンポーネントや `CircularProgress` コンポーネントを表示します。`articleError` が発生した場合は、`Alert` コンポーネントでエラーメッセージを表示します。
+            - **表示形式に応じたレンダリング:** 現在の `viewMode` の値に応じて、`ArticleTable` コンポーネントまたは `ArticleCardList` コンポーネントを条件付きでレンダリングします。
+        - **`ArticleTable.tsx` / `ArticleCardList.tsx`**:
+            - **Props:** 表示する記事の配列 (`articles: Article[]`)、現在選択されている記事IDのセット (`selectedArticleIds: Set<number>`)、記事の選択状態が変更された際に呼び出すコールバック関数 (`onSelectionChange: (articleId: number) => void`) を受け取ります。
+            - **UI (Table):** MUI の `Table` コンポーネント、`Checkbox` コンポーネントなどを使用して、テーブル形式で記事リストを表示します。各行に選択用のチェックボックスを配置します。
+            - **UI (Card):** MUI の `Grid` コンポーネント、`Card` コンポーネント、`CardActionArea` コンポーネント、`CardMedia` コンポーネント、`Checkbox` コンポーネントなどを使用して、カード形式で記事リストを表示します。各カードに選択用のチェックボックスを配置し、ホバー時のエフェクト実装（詳細は後述）を検討します。
+            - **機能:** 各記事のチェックボックスやカードがクリックされた際に、`onSelectionChange` コールバック関数を呼び出し、選択された記事IDを親コンポーネントに通知して `selectedArticleIds` ステートを更新します。
+    - **中央:**
+        - MUI の `IconButton` コンポーネント (`ArrowForwardIcon` をアイコンとして使用) を配置します。このボタンの `disabled` プロパティは、`selectedArticleIds.size === 0` の場合に `true` となり、選択されていない場合は非活性化されます。
+        - **機能:** ボタンがクリックされると、現在の `articles` ステートから `selectedArticleIds` に含まれるIDを持つ記事オブジェクトを抽出し、`useTopicStore` の `addArticles` アクションに渡します。処理が完了した後、`selectedArticleIds` ステートをクリアします。
+    - **右側 (選択済み記事):**
+        - **`SelectedTopicsList.tsx`**:
+            - **状態管理:** `useTopicStore` から、選択済みの記事リスト (`articles` - ストア内の選択済み記事リスト)、記事削除関数 (`removeArticle`)、記事の順序更新関数 (`updateArticleOrder` またはドラッグ＆ドロップ用の `setArticlesOrder`) を取得します。
+            - **UI:** MUI の `List` コンポーネントと `ListItem` コンポーネントを使用して、選択された記事のリストを表示します。各リストアイテムには、記事のタイトルと削除ボタン (`IconButton` コンポーネントに `DeleteIcon` を使用) を配置します。オプションとして、リストアイテムの順序を上下に移動させるボタンや、ドラッグ＆ドロップ操作のためのハンドルを追加することも検討します。
+            - **機能:** 各記事の削除ボタンがクリックされると、対応する記事IDを引数として `removeArticle` 関数を呼び出します。移動ボタンまたはドラッグ＆ドロップ操作が完了した際には、`updateArticleOrder` 関数または `setArticlesOrder` 関数を呼び出して、ストア内の記事順序を更新します。
+    - **下部:**
+        - 「配信テンプレート出力ボタン」として、MUI の `Button` コンポーネントを配置します。このボタンがクリックされると、`useTopicStore` の `setActiveTab('templateOutput')` アクションを呼び出し、「テンプレート出力」タブへ遷移させます。
+
+    ### d. テンプレート出力タブ (`TemplateOutputTab.tsx`)
+
+    - **状態管理:** `useTopicStore` から、まとめ文章 (`summary`)、選択された記事リスト (`articles`)、まとめ文章更新関数 (`setSummary`)、記事カテゴリ更新関数 (`updateArticleCategory`)、LLMによる自動まとめ生成関数 (`generateSummary`)、LLMによる記事自動カテゴリ分類関数 (`autoCategorizeArticle`)、まとめ生成中のローディング状態 (`isGeneratingSummary`)、カテゴリ分類中のローディング状態 (`isCategorizing` オブジェクト - 記事IDをキーとするローディング状態)、エラー状態 (`error`) を取得します。
+    - **上部 (まとめ欄):**
+        - **`SummaryEditor.tsx`**:
+            - **UI:** 複数行入力可能な MUI の `TextField` コンポーネント (`multiline` プロパティを使用、`value={summary}`, `onChange={(e) => setSummary(e.target.value)}`) を配置します。その下に、「LLM自動まとめ文章生成」ボタンとして MUI の `LoadingButton` コンポーネント (`loading={isGeneratingSummary}`, `onClick={generateSummary}`) を配置します。
+            - **エラー表示:** `error` 状態が真であれば、`Alert` コンポーネントを表示してユーザーにエラーを通知します。
+    - **中央 (記事リスト):**
+        - ストアから取得した `articles` リストを `map` 関数で反復処理し、各記事に対して `TopicItemEditor` コンポーネントをレンダリングします。リストの表示順序は、各記事オブジェクトの `displayOrder` プロパティに従います。
+        - **`TopicItemEditor.tsx`**:
+            - **Props:** ストア内の記事データ型 (`TopicArticle`) の記事オブジェクトを `article` プロパティとして受け取ります。
+            - **UI:** 記事のタイトルやURLなどの基本情報を表示するための `Typography` コンポーネントや `Link` コンポーネントを配置します。大カテゴリと小カテゴリを選択するための `Select` コンポーネントをそれぞれ配置します。各記事に対して、「LLM自動分類」ボタンとして MUI の `LoadingButton` コンポーネント (`loading={isCategorizing[article.id]}`, `onClick={() => autoCategorizeArticle(article.id)}`) を配置します。`isCategorizing` オブジェクトの対応する記事IDのローディング状態に基づいて、ボタンのローディング表示を制御します。
+            - **機能:** 大カテゴリまたは小カテゴリの `Select` コンポーネントの値が変更された際に、`onChange` イベントハンドラ内で `updateArticleCategory` 関数を呼び出し、ストア内の記事カテゴリ情報を更新します。
+            - **カテゴリ選択肢:** 大カテゴリと小カテゴリの選択肢は、事前に定義した定数リスト (`const CATEGORIES = { major: [...], minor: [...] }`) を使用するか、またはAPIから非同期で取得したリストを使用します。
+    - **下部:**
+        - 「プレビュー出力ボタン」として、MUI の `Button` コンポーネントを配置しますこのボタンがクリックされると、`useTopicStore` の `setActiveTab('preview')` アクションを呼び出し、「プレビュー」タブへ遷移させます。
+
+    ### e. プレビュータブ (`PreviewTab.tsx`)
+
+    - **状態管理:** `useTopicStore` から、TOPICSのタイトル (`title`)、まとめ文章 (`summary`)、選択された記事リスト (`articles`) を取得します。
+    - **機能:** ストアに格納されているデータを元に、指定されたHTMLフォーマットに従ってTOPICSのプレビューをReactコンポーネントとしてレンダリングします。記事は `categoryMajor` プロパティでグループ化し、`displayOrder` プロパティに従ってソートして表示します。
+    - **UI:** TOPICSのプレビュー表示を構築するために、MUI の `Container` コンポーネント、`Typography` コンポーネント、`List` コンポーネント、`ListItem` コンポーネント、`Divider` コンポーネントなどを適切に組み合わせて使用します。プレビューのスタイルは、MUIコンポーネントの `sx` プロパティや、`styled` 関数を用いてカスタマイズします。
+
+  scope:
+    - frontend/app/topics/[id]/edit/
+  enforce: true
+  details:
+    - 各ページのコンポーネント構成と役割が明確に定義されていること。
+    - 必要なデータの取得、状態管理、UI表示が適切に実装されていること。
+    - ユーザーインタラクションに対する応答（ボタンクリック、入力変更など）が適切に処理されていること。
+    - エラーハンドリング（ローディング表示、エラーメッセージ表示）が実装されていること。
+
+  - description: |
+    **3. APIエンドポイント (フロントエンド `/app/api/`)**
+
+    - **`GET /api/topics`**:
+        - TOPICSのリストを取得します。
+        - レスポンス例: `[{ id: 1, title: "1月TOPICS配信", updatedAt: "..." }, ...]`
+    - **`POST /api/topics`**:
+        - 新しいTOPICSを作成します。
+        - リクエスト例: `{ title: "新規TOPICS", summary: "...", articles: [{ articleId: 1, displayOrder: 0, categoryMajor: "...", categoryMinor: "..." }, ...] }`
+        - レスポンス例: `{ id: 123, title: "新規TOPICS", ... }` (作成されたTopicオブジェクト)
+    - **`GET /api/topics/[id]`**:
+        - 特定のIDのTOPICSの詳細情報を取得します。
+        - レスポンス例: `{ id: 1, title: "1月TOPICS配信", summary: "...", articles: [{ id: 5, displayOrder: 0, categoryMajor: "...", categoryMinor: "...", title: "記事タイトル", url:"...", source:"...", summary:"...", published:"...", thumbnailUrl:"..." }, ...], createdAt: "...", updatedAt: "..." }` (記事情報も含む)
+    - **`PUT /api/topics/[id]`**:
+        - 特定のIDのTOPICSを更新します。
+        - リクエスト例: (POSTと同様の形式)
+        - レスポンス例: `{ id: 1, title: "更新後TOPICS", ... }` (更新されたTopicオブジェクト)
+    - **`GET /api/articles`**:
+        - 記事のリストを取得します。
+        - クエリパラメータ: `startDate`, `endDate`, `labels[]`, `page`, `limit`
+        - レスポンス例: `{ items: [{ id: 1, title: "記事タイトル", ... }], totalCount: 123, page: 1, limit: 20 }`
+    - **`GET /api/articles/search`**:
+        - 記事を検索します（オートコンプリート用）。
+        - クエリパラメータ: `q` (検索キーワード)
+        - レスポンス例: `[{ id: 1, title: "記事タイトル", ... }, ...]` (検索結果をオートコンプリート用に最大10件程度)
+    -  **`GET /api/topics/search`**:
+        - TOPICSを検索します（オートコンプリート用）。
+        - クエリパラメータ: `q` (検索キーワード)
+        - レスポンス例: `[{ id: 1, title: "1月TOPICS配信", ... }, ...]` (検索結果をオートコンプリート用に最大10件程度)
+
+  scope:
+    - frontend/app/api/
+  enforce: true
+  details:
+    - 必要なAPIエンドポイントが網羅されていること。
+    - 各エンドポイントのHTTPメソッド、URL、リクエストパラメータ、レスポンス形式が明確に定義されていること。
+    - オートコンプリート用の検索APIが提供されていること。
+
+  - description: |
+    **4. オートコンプリート機能**
+
+    ### a. トピック検索
+
+    - **コンポーネント:** `TopicSearch.tsx`
+    - **機能:**
+        - タイトル、キーワードでトピックをインクリメンタルサーチします。
+        - 検索結果から選択するとそのトピック詳細ページに遷移します。
+        - 最近作成されたトピックをデフォルトで表示します。
+    - **UI実装:**
+        ```tsx
+        // TopicSearch.tsx
+        import { useState, useEffect } from 'react';
+        import { Autocomplete, TextField, CircularProgress } from '@mui/material';
+        import { useRouter } from 'next/navigation';
+
+        export const TopicSearch = () => {
+          const [open, setOpen] = useState(false);
+          const [options, setOptions] = useState([]);
+          const [loading, setLoading] = useState(false);
+          const [inputValue, setInputValue] = useState('');
+          const router = useRouter();
+
+          useEffect(() => {
+            let active = true;
+
+            if (inputValue === '') {
+              setOptions([]);
+              return undefined;
+            }
+
+            setLoading(true);
+
+            // 検索APIを呼び出す (500msのdebounce)
+            const timeoutId = setTimeout(() => {
+              fetch(`/api/topics/search?q=${encodeURIComponent(inputValue)}`)
+                .then(response => response.json())
+                .then(data => {
+                  if (active) {
+                    setOptions(data);
+                    setLoading(false);
+                  }
+                })
+                .catch(() => {
+                  setLoading(false);
+                });
+            }, 500);
+
+            return () => {
+              active = false;
+              clearTimeout(timeoutId);
+            };
+          }, [inputValue]);
+
+          return (
+            <Autocomplete
+              open={open}
+              onOpen={() => setOpen(true)}
+              onClose={() => setOpen(false)}
+              inputValue={inputValue}
+              onInputChange={(_, newValue) => setInputValue(newValue)}
+              options={options}
+              getOptionLabel={(option) => option.title}
+              loading={loading}
+              onChange={(_, newValue) => {
+                if (newValue) {
+                  router.push(`/topics/${newValue.id}/edit`);
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="トピックを検索"
+                  variant="outlined"
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
+          );
+        };
+        ```
+
+    ### b. 記事検索 (TOPICS編集時)
+
+    - **コンポーネント:** `ArticleSearch.tsx`
+    - **機能:**
+        - タイトル、キーワードで記事をインクリメンタルサーチします。
+        - 検索結果から選択するとその記事をトピックに追加します。
+        - 表形式・カード形式のリスト表示と連携します。
+    - **実装上の考慮点:**
+        - 検索入力時にはdebounceを適用し、APIリクエスト数を最適化します。
+        - ユーザー入力で400ms程度の遅延を持たせてから検索APIを呼び出すようにします。
+        - 既に選択済みの記事は検索結果から除外または区別表示します。
+        - モバイル画面でも操作しやすいUI設計とします。
+
+  scope:
+    - frontend/app/topics/components/
+  enforce: true
+  details:
+    - トピック検索コンポーネント (`TopicSearch.tsx`) が、指定された機能とUI要件を満たしていること。
+    - 記事検索コンポーネント (`ArticleSearch.tsx`) の機能と実装上の考慮点が明確に記述されていること。
+    - オートコンプリート機能が、ユーザーにとって使いやすく、効率的な検索体験を提供するものであること。
