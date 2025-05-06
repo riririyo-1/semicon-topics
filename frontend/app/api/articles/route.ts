@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(_req: NextRequest) {
-  const res = await fetch("http://api:4000/api/articles", { cache: "no-store" });
+export async function GET(req: NextRequest) {
+  // URLからクエリパラメータを取得
+  const url = new URL(req.url);
+  const searchParams = url.searchParams.toString();
+  
+  // クエリパラメータをAPIリクエストに含める
+  const apiUrl = `http://api:4000/api/articles${searchParams ? `?${searchParams}` : ''}`;
+  
+  const res = await fetch(apiUrl, { cache: "no-store" });
   const data = await res.json();
   return new NextResponse(JSON.stringify(data), {
     status: res.status,

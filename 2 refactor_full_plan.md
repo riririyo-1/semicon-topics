@@ -44,11 +44,8 @@ SSS MS事 MSテスト技術開発部 1課 の大森です。
 
 ■ 半導体動向調査チームより
 ★LSI戦略コミッティ 半導体動向調査チームのポータルサイトが新しくなりました。ぜひご覧ください！
-https://sonyjpn.sharepoint.com/sites/S110-STR
 ★今後改善を加えていきたいと思います。ご意見、ご要望などありましたら、ご連絡ください。
 ★有料ニュースの詳細要望もお受けします。
- Ryoko.Yamada@sony.com (山田)
- Ryo.Omori@sony.com (大森)
  
 
 ■ TOPIX記事

@@ -9,61 +9,80 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import { useTopicStore } from '../../../../../stores/topicStore';
+// import { useTopicStore } from '../../../../../stores/topicStore'; // ストアへの直接アクセスを削除
+import { TopicArticle as StoreTopicArticle } from '../../../../../stores/topicStore'; // 型のみインポート
 
-const SelectedTopicsList: React.FC = () => {
-  const { articles, removeArticle, updateArticleOrder } = useTopicStore();
+interface SelectedTopicsListProps {
+  articles: StoreTopicArticle[]; // 親からソート済みの記事リストを受け取る
+  selectedArticleIds: Set<number>;
+  onSelectionChange: (articleId: number) => void;
+  onMoveUp: (articleId: number) => void;
+  onMoveDown: (articleId: number) => void;
+  onRemove: (articleId: number) => void;
+}
+
+const SelectedTopicsList: React.FC<SelectedTopicsListProps> = ({
+  articles,
+  selectedArticleIds,
+  onSelectionChange,
+  onMoveUp,
+  onMoveDown,
+  onRemove
+}) => {
+  // const { articles, removeArticle, updateArticleOrder } = useTopicStore(); // 削除
   
-  // 表示順でソート
-  const sortedArticles = [...articles].sort((a, b) => a.displayOrder - b.displayOrder);
+  // 表示順でソート (親コンポーネントで行うため削除)
+  // const sortedArticles = [...articles].sort((a, b) => a.displayOrder - b.displayOrder);
   
-  // 記事を上に移動
+  // 記事を上に移動 (親コンポーネントのコールバックを呼ぶ)
   const handleMoveUp = (articleId: number) => {
-    const currentIndex = sortedArticles.findIndex(a => a.id === articleId);
-    if (currentIndex <= 0) return; // 既に先頭の場合は何もしない
-    
-    const newOrder = sortedArticles[currentIndex - 1].displayOrder;
-    const prevOrder = sortedArticles[currentIndex].displayOrder;
-    
-    updateArticleOrder(articleId, newOrder);
-    updateArticleOrder(sortedArticles[currentIndex - 1].id, prevOrder);
+    onMoveUp(articleId);
   };
   
-  // 記事を下に移動
+  // 記事を下に移動 (親コンポーネントのコールバックを呼ぶ)
   const handleMoveDown = (articleId: number) => {
-    const currentIndex = sortedArticles.findIndex(a => a.id === articleId);
-    if (currentIndex === -1 || currentIndex >= sortedArticles.length - 1) return;
-    
-    const newOrder = sortedArticles[currentIndex + 1].displayOrder;
-    const prevOrder = sortedArticles[currentIndex].displayOrder;
-    
-    updateArticleOrder(articleId, newOrder);
-    updateArticleOrder(sortedArticles[currentIndex + 1].id, prevOrder);
+    onMoveDown(articleId);
+  };
+
+  const handleRemove = (articleId: number) => {
+    onRemove(articleId);
   };
   
-  if (sortedArticles.length === 0) {
+  if (articles.length === 0) {
     return (
       <Paper variant="outlined" sx={{ p: 2, height: '100%', minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          左側のリストから記事を選択してください
+          左側のリストから記事を選択するか、検索して追加してください
         </Typography>
       </Paper>
     );
   }
   
   return (
-    <Paper variant="outlined" sx={{ maxHeight: 500, overflow: 'auto' }}>
+    <Paper variant="outlined" sx={{ maxHeight: '100%', height: '100%', overflow: 'auto' }}>
       <List disablePadding>
-        {sortedArticles.map((article, index) => (
+        {articles.map((article, index) => (
           <React.Fragment key={article.id}>
             {index > 0 && <Divider />}
-            <ListItem>
-              <Box sx={{ display: 'flex', mr: 1 }}>
+            <ListItem
+              selected={selectedArticleIds.has(article.id)}
+              onClick={() => onSelectionChange(article.id)}
+              sx={{ 
+                cursor: 'pointer',
+                '&.Mui-selected': {
+                  backgroundColor: 'action.selected',
+                },
+                '&.Mui-selected:hover': {
+                  backgroundColor: 'action.selected',
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
                 <Tooltip title="上に移動">
                   <span>
                     <IconButton 
                       size="small"
-                      onClick={() => handleMoveUp(article.id)}
+                      onClick={(e) => { e.stopPropagation(); handleMoveUp(article.id); }}
                       disabled={index === 0}
                       sx={{ mr: 0.5 }}
                     >
@@ -75,8 +94,8 @@ const SelectedTopicsList: React.FC = () => {
                   <span>
                     <IconButton 
                       size="small"
-                      onClick={() => handleMoveDown(article.id)}
-                      disabled={index === sortedArticles.length - 1}
+                      onClick={(e) => { e.stopPropagation(); handleMoveDown(article.id); }}
+                      disabled={index === articles.length - 1}
                     >
                       <ArrowDownwardIcon fontSize="small" />
                     </IconButton>
@@ -85,7 +104,7 @@ const SelectedTopicsList: React.FC = () => {
               </Box>
               <ListItemText
                 primary={article.title}
-                secondary={`${article.source} | ${article.published ? new Date(article.published).toLocaleDateString('ja-JP') : '日付不明'}`}
+                secondary={`${article.source || '出典不明'} | ${article.published ? new Date(article.published).toLocaleDateString('ja-JP') : '日付不明'}`}
                 primaryTypographyProps={{
                   variant: 'body2',
                   noWrap: true,
@@ -101,7 +120,7 @@ const SelectedTopicsList: React.FC = () => {
                   edge="end" 
                   aria-label="delete" 
                   size="small"
-                  onClick={() => removeArticle(article.id)}
+                  onClick={(e) => { e.stopPropagation(); handleRemove(article.id); }}
                 >
                   <DeleteIcon fontSize="small" />
                 </IconButton>

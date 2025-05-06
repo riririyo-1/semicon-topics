@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Box, Tabs, Tab, TextField, Chip, CircularProgress, Typography, Button, Stack,
+  Box, TextField, Chip, CircularProgress, Typography, Button, Stack,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Switch, FormControlLabel, useTheme
 } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -23,7 +23,6 @@ type Article = {
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState(0);
   const [keyword, setKeyword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [tableView, setTableView] = useState(false);
@@ -35,7 +34,9 @@ export default function ArticlesPage() {
     fetch("/api/articles")
       .then(res => res.json())
       .then(data => {
-        setArticles(data);
+        // APIレスポンスは { items: [...], total: number, ... } 形式になったため
+        // items プロパティから記事の配列を取得する
+        setArticles(data.items || []);
         setLoading(false);
       })
       .catch(e => {
@@ -48,10 +49,10 @@ export default function ArticlesPage() {
     fetchArticles();
   }, []);
 
-  const filtered = articles.filter(a =>
-    (tab === 0 || (a.labels && a.labels.some(l => l.includes("半導体")))) &&
-    (!keyword || a.title.includes(keyword) || a.summary.includes(keyword))
-  );
+  // キーワード検索のみでフィルタリング
+  const filtered = Array.isArray(articles) 
+    ? articles.filter(a => !keyword || a.title.includes(keyword) || a.summary?.includes(keyword))
+    : [];
 
   const cardBg = theme.palette.background.paper;
   const cardShadow = theme.palette.mode === "dark"
@@ -64,16 +65,7 @@ export default function ArticlesPage() {
   return (
     <Box sx={{ maxWidth: 1100, mx: "auto", mt: 4 }}>
       <Typography variant="h4" gutterBottom color="text.primary">記事一覧</Typography>
-      <Tabs
-        value={tab}
-        onChange={(_, v) => setTab(v)}
-        sx={{ mb: 2 }}
-        textColor="inherit"
-        TabIndicatorProps={{ style: { background: theme.palette.primary.main } }}
-      >
-        <Tab label="全記事" sx={{ color: theme.palette.text.primary }} />
-        <Tab label="半導体TOPIX" sx={{ color: theme.palette.text.primary }} />
-      </Tabs>
+
       <Stack direction="row" spacing={2} mb={2} alignItems="center">
         <TextField
           label="キーワード"

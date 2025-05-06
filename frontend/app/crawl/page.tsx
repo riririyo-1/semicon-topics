@@ -51,8 +51,11 @@ export default function CrawlPage() {
     try {
       const res = await fetch("/api/articles?limit=100");
       const data = await res.json();
-      setArticles(data);
-    } catch {
+      // APIレスポンスは { items: [...], total: number, ... } 形式になったため
+      // items プロパティから記事の配列を取得する
+      setArticles(data.items || []);
+    } catch (error) {
+      console.error("記事取得エラー:", error);
       setArticles([]);
     } finally {
       setFetching(false);

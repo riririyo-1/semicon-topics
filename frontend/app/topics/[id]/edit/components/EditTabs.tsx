@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Box, Tabs, Tab, Alert, Button, CircularProgress } from '@mui/material';
+import { Box, Tabs, Tab, Alert, Button, CircularProgress, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import SaveIcon from '@mui/icons-material/Save';
 import ArticleSelectionTab from './ArticleSelectionTab';
@@ -22,10 +22,11 @@ function TabPanel({ children, value, index, ...other }: TabPanelProps) {
       hidden={value !== index}
       id={`topic-tabpanel-${index}`}
       aria-labelledby={`topic-tab-${index}`}
+      style={{ width: '100%' }}
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 3, width: '100%' }}>
           {children}
         </Box>
       )}
@@ -47,7 +48,8 @@ const EditTabs: React.FC = () => {
     saveTopic, 
     isSaving, 
     error, 
-    title
+    title,
+    setTitle
   } = useTopicStore();
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -56,7 +58,20 @@ const EditTabs: React.FC = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      {error && (
+      <TextField 
+        label="TOPICSタイトル"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="例: 2025年5月 半導体業界TOPICS"
+        variant="outlined"
+        fullWidth
+        required
+        sx={{ mb: 3 }}
+        error={error?.includes('タイトル')}
+        helperText={error?.includes('タイトル') ? error : ''}
+      />
+
+      {error && !error.includes('タイトル') && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
@@ -75,7 +90,6 @@ const EditTabs: React.FC = () => {
           startIcon={<SaveIcon />}
           loading={isSaving}
           onClick={saveTopic}
-          disabled={!title}
         >
           保存
         </LoadingButton>

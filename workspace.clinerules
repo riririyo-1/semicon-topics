@@ -1,0 +1,491 @@
+# 【AIエージェント用 統合ルールファイル】semicon_topics2
+
+---
+## 1. プロジェクト全体方針・設計思想（global rule含む）
+
+### 1-1. 命名規則
+- 変数・関数：キャメルケース（例：fetchArticles, articleList）
+- クラス・型：パスカルケース（例：ArticleCardList, TopicItemEditor）
+- ファイル：ケバブケースまたはスネークケース（例：article-table.tsx, topic_store.ts）
+- ディレクトリ：小文字・複数形（例：components, services, stores）
+- APIエンドポイント：スネークケース（例：/api/topics, /api/articles/search）
+
+### 1-2. コーディング規約
+- TypeScript/React：ESLint, Prettier, MUI推奨
+- any型は禁止
+- Python：PEP8厳守、型ヒント必須
+- 1関数1責務、DRY原則、Magic Number禁止
+- 例外処理・エラーハンドリングを徹底
+
+### 1-3. AIエージェント利用時の注意点
+- 省略・抽象化禁止。理由がなければ原文・設計意図を忠実に反映
+- 根拠なき自動修正・リファクタ禁止。
+- 設計・要件・ルールに基づくこと
+- ルール・設計・要件に不明点があれば、必ずユーザーに確認を取る
+
+---
+
+## 2. ディレクトリ・ファイル構成
+
+Next.js App Router規約・クリーンアーキテクチャに基づく。  
+（詳細は1 frontend_topics_page_design.mdおよび2 refactor_full_plan.mdの該当セクションを省略せず反映）
+
+# ディレクトリ構成（主要部分のみ）
+
+```
+semicon_topics2/
+├── api/
+│   └── src/
+│       └── index.ts
+├── backend/
+│   └── src/
+├── frontend/
+│   └── app/
+│       ├── articles/
+│       ├── crawl/
+│       ├── summarize/
+│       └── topics/
+├── pipeline/
+│   ├── service/
+│   ├── usecase/
+│   └── main.py
+├── docs/
+│   └── refactor_full_plan.md
+├── package.json
+└── ...
+```
+
+- Next.js App Router の規約に基づき、frontend/app/topics/配下は以下のように構成する。
+```
+frontend/
+  app/
+    topics/
+      page.tsx                 # TOPICSリストページのルート
+      components/              # TOPICSリストページ用コンポーネント
+        TopicsList.tsx         # TOPICSリスト表示コンポーネント
+        CreateTopicButton.tsx  # 新規作成ボタンコンポーネント
+        TopicSearch.tsx        # TOPICSオートコンプリート検索コンポーネント
+      [id]/                    # 特定のTOPICS配信用ディレクトリ
+        edit/
+          page.tsx             # TOPICS編集ページのルート
+          components/          # TOPICS編集ページ用コンポーネント
+            EditTabs.tsx         # 3つのタブを管理するコンポーネント
+            ArticleSelectionTab.tsx # 「TOPICS選択」タブコンポーネント
+              ArticleFilter.tsx    # 記事絞り込みフィルター
+              ArticleTable.tsx     # 記事一覧（表形式）
+              ArticleCardList.tsx  # 記事一覧（カード形式）
+              SelectedTopicsList.tsx # 選択された記事リスト
+              ArticleSearch.tsx     # 記事オートコンプリート検索コンポーネント
+            TemplateOutputTab.tsx # 「テンプレート出力」タブコンポーネント
+              SummaryEditor.tsx    # まとめ編集エリア
+              TopicItemEditor.tsx  # 各記事の編集（カテゴリ選択など）
+            PreviewTab.tsx       # 「プレビュー」タブコンポーネント
+  stores/                      # Zustand ストアディレクトリ (新規作成)
+    topicStore.ts              # TOPICS編集用ストア
+  types/                       # 型定義ディレクトリ (必要に応じて)
+    index.ts                   # 共通の型定義
+```
+
+- pipeline/配下は、service, usecase, entity, repository, interfaceなどクリーンアーキテクチャの原則に従い分離する。
+- docs/配下に設計・仕様・運用ドキュメントを集約する。
+
+---
+
+## 3. フロントエンド設計・実装ルール
+
+### 3-1. 画面仕様・UI設計
+# フロントエンド TOPICS配信ページ 設計案
+
+## 1. ファイル構成案
+
+Next.js App Router の規約に基づき、以下のファイル構成を提案します。
+
+```
+frontend/
+  app/
+    topics/
+      page.tsx                 # TOPICSリストページのルート
+      components/              # TOPICSリストページ用コンポーネント
+        TopicsList.tsx         # TOPICSリスト表示コンポーネント
+        CreateTopicButton.tsx  # 新規作成ボタンコンポーネント
+        TopicSearch.tsx        # TOPICSオートコンプリート検索コンポーネント
+      [id]/                    # 特定のTOPICS配信用ディレクトリ
+        edit/
+          page.tsx             # TOPICS編集ページのルート
+          components/          # TOPICS編集ページ用コンポーネント
+            EditTabs.tsx         # 3つのタブを管理するコンポーネント
+            ArticleSelectionTab.tsx # 「TOPICS選択」タブコンポーネント
+              ArticleFilter.tsx    # 記事絞り込みフィルター
+              ArticleTable.tsx     # 記事一覧（表形式）
+              ArticleCardList.tsx  # 記事一覧（カード形式）
+              SelectedTopicsList.tsx # 選択された記事リスト
+              ArticleSearch.tsx     # 記事オートコンプリート検索コンポーネント
+            TemplateOutputTab.tsx # 「テンプレート出力」タブコンポーネント
+              SummaryEditor.tsx    # まとめ編集エリア
+              TopicItemEditor.tsx  # 各記事の編集（カテゴリ選択など）
+            PreviewTab.tsx       # 「プレビュー」タブコンポーネント
+  stores/                      # Zustand ストアディレクトリ (新規作成)
+    topicStore.ts              # TOPICS編集用ストア
+  types/                       # 型定義ディレクトリ (必要に応じて)
+    index.ts                   # 共通の型定義
+```
+
+## 2. 各ページの機能設計
+
+### a. TOPICSリストページ (`/topics`)
+
+-   **`frontend/app/topics/page.tsx`**:
+    -   **データ取得:** `useSWR` または React Query (`useQuery`) を使用し、`/api/topics` からTOPICSリスト (`Topic[]`) を取得。ローディング状態 (`isLoading`)、エラー状態 (`error`) をハンドリング。
+    -   **コンポーネント:**
+        -   `CreateTopicButton`: 新規作成ページ (`/topics/new/edit`) へのリンクボタン。
+        -   `TopicsList`: 取得した `topics` データを渡す。
+    -   **UI:** ページタイトル (例: `Typography variant="h4"`)、`CreateTopicButton`、`TopicsList` を表示。`isLoading` 中は `CircularProgress` を表示。`error` 時は `Alert` でメッセージ表示。
+-   **`frontend/app/topics/components/TopicsList.tsx`**:
+    -   **Props:** `topics: Topic[]` (例: `interface Topic { id: number; title: string; createdAt: string; }`)
+    -   **機能:** `topics` 配列をマップし、各TOPICSを `ListItem` や `Card` で表示。
+    -   **UI:** 各項目は `next/link` で `/topics/[id]/edit` へリンク。MUI `List` や `Grid` を使用。各項目に最終更新日時なども表示すると良い。
+    -   **スタイリング:** 既存のリスト表示スタイルを踏襲。
+-   **`frontend/app/topics/components/CreateTopicButton.tsx`**:
+    -   **機能:** `/topics/new/edit` へ遷移する `Link` コンポーネントを内包したMUI `Button` (`variant="contained"`, `startIcon={<AddIcon />}` など)。
+
+### b. TOPICS配信編集ページ (`/topics/[id]/edit`)
+
+-   **`frontend/app/topics/[id]/edit/page.tsx`**:
+    -   **ルーティング:** `useParams` フック (`next/navigation`) で `id` を取得。
+    -   **状態管理:** `useTopicStore` フックを使用。
+    -   **データ取得/初期化:** `useEffect` を使用。
+        -   コンポーネントマウント時: `id` が `'new'` なら `resetState()` を呼び出し、そうでなければ `loadTopic(Number(id))` を呼び出す。
+        -   コンポーネントアンマウント時: `resetState()` を呼び出してストアをクリーンアップ。
+    -   **コンポーネント:** `EditTabs` をレンダリング。ストアから `isLoading`, `error` を取得し、`CircularProgress` や `Alert` を表示。
+-   **`frontend/app/topics/[id]/edit/components/EditTabs.tsx`**:
+    -   **状態管理:** `useTopicStore` から `activeTab`, `setActiveTab`, `saveTopic`, `isSaving`, `error` を取得。
+    -   **UI:** MUI `Tabs` コンポーネント (`value={activeTab}`, `onChange={(_, newValue) => setActiveTab(newValue)}`)。各 `Tab` (`label`, `value`) に対応するコンポーネント (`ArticleSelectionTab`, `TemplateOutputTab`, `PreviewTab`) を条件付きレンダリング。ページ上部または下部に保存ボタン (MUI `LoadingButton` from `@mui/lab`, `loading={isSaving}`, `onClick={saveTopic}`) を配置。
+    -   **エラー表示:** `error` があれば `Alert` を表示。
+
+### c. TOPICS選択タブ (`ArticleSelectionTab.tsx`)
+
+-   **状態管理:** `useTopicStore` から `addArticles` を取得。ローカルステート (`useState`) でフィルター条件 (`filters`)、表示形式 (`viewMode: 'table' | 'card'`)、左側リストの選択状態 (`selectedArticleIds: Set<number>`)、取得した記事リスト (`articles: Article[]`)、ローディング状態 (`isArticleLoading`)、エラー状態 (`articleError`) を管理。
+-   **レイアウト:** MUI `Grid` (`container`, `spacing={2}`) で左右分割。中央に矢印ボタン用の `Grid item xs={1}`。
+-   **左側 (記事一覧):**
+    -   `ArticleFilter.tsx`:
+        -   **Props:** `initialFilters`, `onFilterChange: (newFilters) => void`
+        -   **UI:** 日付範囲 (`DateRangePicker` or `DatePicker` x2), ラベル (`Autocomplete multiple`)
+        -   **機能:** フィルター変更時に `onFilterChange` を呼び出す。debounce を適用推奨。
+    -   `ArticleSearch.tsx`:
+        -   **Props:** `onArticleSelect: (article: Article) => void`
+        -   **UI:** MUI `Autocomplete` + `TextField`
+        -   **機能:** 記事タイトルやキーワードの入力で即時検索 (debounce 適用)、選択時に `onArticleSelect` を呼び出す
+        -   **データ取得:** 入力文字列変更時に `/api/articles/search?q=検索文字列` を叩いて候補を取得
+    -   表示形式切り替え: MUI `ToggleButtonGroup` (`value={viewMode}`, `onChange={(_, newMode) => setViewMode(newMode)}`)。
+    -   記事リスト表示:
+        -   **データ取得:** `filters` が変更されたら `useEffect` 内で `/api/articles` を叩く (SWRや独自fetch関数)。ページネーションも考慮 (`page`, `limit`)。結果を `articles` state にセット。
+        -   `isArticleLoading` 中は `Skeleton` や `CircularProgress` を表示。
+        -   `articleError` 時は `Alert` を表示。
+        -   `viewMode` に応じて `ArticleTable` または `ArticleCardList` をレンダリング。
+    -   `ArticleTable.tsx` / `ArticleCardList.tsx`:
+        -   **Props:** `articles: Article[]`, `selectedArticleIds: Set<number>`, `onSelectionChange: (articleId: number) => void`
+        -   **UI (Table):** MUI `Table`, `Checkbox`。
+        -   **UI (Card):** MUI `Grid`, `Card`, `CardActionArea`, `CardMedia`, `Checkbox`。ホバーエフェクト実装 (後述)。
+        -   **機能:** チェックボックス/カードクリック時に `onSelectionChange` を呼び出し、`selectedArticleIds` state を更新。
+-   **中央:**
+    -   MUI `IconButton` (`ArrowForwardIcon`)。`disabled` は `selectedArticleIds.size === 0`。
+    -   **機能:** クリック時に `articles` state から `selectedArticleIds` に含まれる記事オブジェクトを探し、`useTopicStore` の `addArticles` アクションに渡す。処理後、`selectedArticleIds` をクリア。
+-   **右側 (選択済み記事):**
+    -   `SelectedTopicsList.tsx`:
+        -   **状態管理:** `useTopicStore` から `articles` (選択済みリスト), `removeArticle`, `updateArticleOrder` (または `setArticlesOrder` for D&D) を取得。
+        -   **UI:** MUI `List` と `ListItem`。各項目にタイトル、削除ボタン (`IconButton` with `DeleteIcon`)。オプションで上下移動ボタンまたはドラッグハンドル。
+        -   **機能:** 削除ボタンクリックで `removeArticle`。移動ボタン/D&D完了で `updateArticleOrder`/`setArticlesOrder`。
+-   **下部:**
+    -   「配信テンプレート出力ボタン」: MUI `Button`。クリック時に `useTopicStore` の `setActiveTab('templateOutput')` を呼び出す。
+
+### d. テンプレート出力タブ (`TemplateOutputTab.tsx`)
+
+-   **状態管理:** `useTopicStore` から `summary`, `articles`, `setSummary`, `updateArticleCategory`, `generateSummary`, `autoCategorizeArticle`, `isGeneratingSummary`, `isCategorizing`, `error` を取得。
+-   **上部 (まとめ欄):**
+    -   `SummaryEditor.tsx`:
+        -   **UI:** MUI `TextField` (multiline, `value={summary}`, `onChange={(e) => setSummary(e.target.value)}`)。「LLM自動まとめ文章生成」ボタン (MUI `LoadingButton`, `loading={isGeneratingSummary}`, `onClick={generateSummary}`)。
+        -   **エラー表示:** `error` があれば `Alert`。
+-   **中央 (記事リスト):**
+    -   ストアの `articles` をマップして `TopicItemEditor` を表示 (順序は `displayOrder` に従う)。
+    -   `TopicItemEditor.tsx`:
+        -   **Props:** `article: TopicArticle` (ストア内の型)
+        -   **UI:** 記事情報表示 (`Typography`, `Link`)。大カテゴリ・小カテゴリ `Select`。LLM自動分類ボタン (MUI `LoadingButton`, `loading={isCategorizing[article.id]}`, `onClick={() => autoCategorizeArticle(article.id)}`)。
+        -   **機能:** カテゴリ `Select` の `onChange` で `updateArticleCategory` を呼び出す。
+        -   **カテゴリ選択肢:** 事前に定義したリスト (`const CATEGORIES = { major: [...], minor: [...] }`) またはAPIから取得したリストを使用。
+-   **下部:**
+    -   「プレビュー出力ボタン」: MUI `Button`。クリック時に `useTopicStore` の `setActiveTab('preview')` を呼び出す。
+
+### e. プレビュータブ (`PreviewTab.tsx`)
+
+-   **状態管理:** `useTopicStore` から `title`, `summary`, `articles` を取得。
+-   **機能:** ストアデータを元に、指定されたHTMLフォーマットをReactコンポーネントとしてレンダリング。記事を `categoryMajor` でグループ化し、`displayOrder` でソートして表示。
+-   **UI:** MUI `Container`, `Typography`, `List`, `ListItem`, `Divider` などを使用してプレビューを構築。スタイルは `sx` prop や `styled` で調整。
+
+## 3. APIエンドポイント (フロントエンド `/app/api/`)
+
+-   **`GET /api/topics`**:
+    -   レスポンス例: `[{ id: 1, title: "1月TOPICS配信", updatedAt: "..." }, ...]`
+-   **`POST /api/topics`**:
+    -   リクエスト例: `{ title: "新規TOPICS", summary: "...", articles: [{ articleId: 1, displayOrder: 0, categoryMajor: "...", categoryMinor: "..." }, ...] }`
+    -   レスポンス例: `{ id: 123, title: "新規TOPICS", ... }` (作成されたTopicオブジェクト)
+-   **`GET /api/topics/[id]`**:
+    -   レスポンス例: `{ id: 1, title: "1月TOPICS配信", summary: "...", articles: [{ id: 5, displayOrder: 0, categoryMajor: "...", categoryMinor: "...", title: "記事タイトル", url:"...", source:"...", summary:"...", published:"...", thumbnailUrl:"..." }, ...], createdAt: "...", updatedAt: "..." }` (記事情報も含む)
+-   **`PUT /api/topics/[id]`**:
+    -   リクエスト例: (POSTと同様の形式)
+    -   レスポンス例: `{ id: 1, title: "更新後TOPICS", ... }` (更新されたTopicオブジェクト)
+-   **`GET /api/articles`**:
+    -   クエリパラメータ: `startDate`, `endDate`, `labels[]`, `page`, `limit`
+    -   レスポンス例: `{ items: [{ id: 1, title: "記事タイトル", ... }], totalCount: 123, page: 1, limit: 20 }`
+-   **`GET /api/articles/search`**:
+    -   クエリパラメータ: `q` (検索キーワード)
+    -   レスポンス例: `[{ id: 1, title: "記事タイトル", ... }, ...]` (検索結果をオートコンプリート用に最大10件程度)
+-   **`GET /api/topics/search`**:
+    -   クエリパラメータ: `q` (検索キーワード)
+    -   レスポンス例: `[{ id: 1, title: "1月TOPICS配信", ... }, ...]` (検索結果をオートコンプリート用に最大10件程度)
+
+## 4. オートコンプリート機能
+
+### a. トピック検索
+
+-   **コンポーネント:** `TopicSearch.tsx`
+-   **機能:**
+    -   タイトル、キーワードでトピックをインクリメンタルサーチ
+    -   検索結果から選択するとそのトピック詳細ページに遷移
+    -   最近作成されたトピックをデフォルトで表示
+-   **UI実装:**
+    ```tsx
+    // TopicSearch.tsx
+    import { useState, useEffect } from 'react';
+    import { Autocomplete, TextField, CircularProgress } from '@mui/material';
+    import { useRouter } from 'next/navigation';
+    
+    export const TopicSearch = () => {
+      const [open, setOpen] = useState(false);
+      const [options, setOptions] = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [inputValue, setInputValue] = useState('');
+      const router = useRouter();
+      
+      useEffect(() => {
+        let active = true;
+        
+        if (inputValue === '') {
+          setOptions([]);
+          return undefined;
+        }
+        
+        setLoading(true);
+        
+        // 検索APIを呼び出す (500msのdebounce)
+        const timeoutId = setTimeout(() => {
+          fetch(`/api/topics/search?q=${encodeURIComponent(inputValue)}`)
+            .then(response => response.json())
+            .then(data => {
+              if (active) {
+                setOptions(data);
+                setLoading(false);
+              }
+            })
+            .catch(() => {
+              setLoading(false);
+            });
+        }, 500);
+        
+        return () => {
+          active = false;
+          clearTimeout(timeoutId);
+        };
+      }, [inputValue]);
+      
+      return (
+        <Autocomplete
+          open={open}
+          onOpen={() => setOpen(true)}
+          onClose={() => setOpen(false)}
+          inputValue={inputValue}
+          onInputChange={(_, newValue) => setInputValue(newValue)}
+          options={options}
+          getOptionLabel={(option) => option.title}
+          loading={loading}
+          onChange={(_, newValue) => {
+            if (newValue) {
+              router.push(`/topics/${newValue.id}/edit`);
+            }
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="トピックを検索"
+              variant="outlined"
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+        />
+      );
+    };
+    ```
+
+### b. 記事検索 (TOPICS編集時)
+
+-   **コンポーネント:** `ArticleSearch.tsx`
+-   **機能:**
+    -   タイトル、キーワードで記事をインクリメンタルサーチ
+    -   検索結果から選択するとその記事をトピックに追加
+    -   表形式・カード形式のリスト表示と連携
+-   **実装上の考慮点:**
+    -   検索入力時にはdebounceを適用し、APIリクエスト数を最適化
+    -   ユーザー入力で400ms程度の遅延を持たせてから検索APIを呼び出す
+    -   既に選択済みの記事は検索結果から除外または区別表示
+    -   モバイル画面でも操作しやすいUI設計
+
+
+### 3-2. フロントエンド機能要件・実装ルール
+
+- 各ページ・各コンポーネントの責務を明確に分離し、再利用性・保守性を高める。
+- Zustandストアを用いた状態管理を徹底し、グローバルな状態（選択記事、編集中トピック、ローディング・エラー状態等）はストアで一元管理する。
+- API通信はSWRまたはReact Queryを推奨し、ローディング・エラー・キャッシュ管理を統一する。
+- UIはMaterial UI（MUI）で統一し、アクセシビリティ・レスポンシブ対応も考慮する。
+- 記事選択・カテゴリ分け・テンプレート出力・プレビュー等の一連のフローを、タブUIで直感的に操作できるようにする。
+- オートコンプリート検索（トピック・記事）はdebounceを適用し、APIリクエスト数を最適化する。
+- 記事リストは表形式・カード形式の切り替えをサポートし、ユーザーの好みに応じて表示を変更できる。
+- 記事の選択・削除・並び替え・カテゴリ編集等の操作は、UI上で即時反映されるようにする。
+- 保存・出力・プレビュー等の重い処理はローディングインジケータを表示し、ユーザー体験を損なわないようにする。
+- すべてのAPIエラー・バリデーションエラーはAlert等で明示的に表示する。
+- コード例・型定義・Props設計・API呼び出し例は1 frontend_topics_page_design.mdの該当箇所を参照。
+
+【オートコンプリート仕様】
+- トピック検索・記事検索ともに、入力値の変更時にdebounce（トピック500ms、記事400ms）を適用し、APIリクエスト数を最適化する。
+- 検索結果は最大10件程度に制限し、既に選択済みの記事は除外または区別表示する。
+- 検索結果から選択時は、該当トピック詳細ページまたは記事追加処理を即時実行する。
+- モバイル画面でも操作しやすいUI設計とする。
+
+【UI/UX運用ルール】
+- 主要な画面遷移・操作・API連携のE2Eテスト・UIテストを必ず作成し、全てのテストがパスすることを必須とする。
+- 画面設計・UI仕様・API連携仕様は本ルールファイルおよび1 frontend_topics_page_design.mdの内容を常に最新化し、設計変更時は必ず反映・レビューを行うこと。
+
+
+### 3-3. フロントエンドAPI連携仕様
+
+【APIエンドポイント一覧】
+- GET /api/topics
+- POST /api/topics
+- GET /api/topics/[id]
+- PUT /api/topics/[id]
+- GET /api/articles
+- GET /api/articles/search
+- GET /api/topics/search
+
+【リクエスト・レスポンス例】
+- GET /api/topics
+  - レスポンス例: `[{ id: 1, title: "1月TOPICS配信", updatedAt: "..." }, ...]`
+- POST /api/topics
+  - リクエスト例: `{ title: "新規TOPICS", summary: "...", articles: [{ articleId: 1, displayOrder: 0, categoryMajor: "...", categoryMinor: "..." }, ...] }`
+  - レスポンス例: `{ id: 123, title: "新規TOPICS", ... }`
+- GET /api/topics/[id]
+  - レスポンス例: `{ id: 1, title: "1月TOPICS配信", summary: "...", articles: [{ id: 5, displayOrder: 0, categoryMajor: "...", categoryMinor: "...", title: "記事タイトル", url:"...", source:"...", summary:"...", published:"...", thumbnailUrl:"..." }, ...], createdAt: "...", updatedAt: "..." }`
+- PUT /api/topics/[id]
+  - リクエスト例: (POSTと同様の形式)
+  - レスポンス例: `{ id: 1, title: "更新後TOPICS", ... }`
+- GET /api/articles
+  - クエリパラメータ: `startDate`, `endDate`, `labels[]`, `page`, `limit`
+  - レスポンス例: `{ items: [{ id: 1, title: "記事タイトル", ... }], totalCount: 123, page: 1, limit: 20 }`
+- GET /api/articles/search
+  - クエリパラメータ: `q` (検索キーワード)
+  - レスポンス例: `[{ id: 1, title: "記事タイトル", ... }, ...]`
+- GET /api/topics/search
+  - クエリパラメータ: `q` (検索キーワード)
+  - レスポンス例: `[{ id: 1, title: "1月TOPICS配信", ... }, ...]`
+
+【データ取得・更新フロー】
+- フロントエンドはSWRまたはReact Queryを用いてAPIからデータを取得・キャッシュ・更新する。
+- 記事・トピックの取得、検索、作成、更新、削除等の全ての操作はAPI経由で行い、状態管理はZustandストアで一元化する。
+- API通信時はローディング・エラー状態を必ずハンドリングし、UI上で明示的に表示する。
+- API仕様・パラメータ・レスポンス例は1 frontend_topics_page_design.mdおよび2 refactor_full_plan.mdの該当箇所を参照。
+
+
+---
+
+## 4. バックエンド・API設計・実装ルール
+
+### 4-1. API仕様・データフロー
+（2 refactor_full_plan.mdのAPI仕様・データフロー・OpenAPI/Swagger導入方針等を省略せず全文記載）
+
+### 4-2. バックエンド機能要件・実装ルール
+（2 refactor_full_plan.mdのAPI層・バックエンド機能要件・リファクタ方針等を省略せず全文記載）
+
+---
+
+## 5. パイプライン・AI連携設計・実装ルール
+
+### 5-1. パイプライン構成・役割
+（2 refactor_full_plan.mdのパイプライン構成・役割・クリーンアーキテクチャ原則等を省略せず全文記載）
+
+### 5-2. AI連携仕様・インターフェース
+
+#### マイルストーン2：pipeline層のクリーンアーキテクチャ徹底・AI連携のinterface化
+
+- [詳細タスク手順]
+  1. **pipeline/service/llm_interface.pyのinterface拡張**
+     - 既存の`LLMInterface`に「要約・ラベル付け・タグ付け・カテゴリ分け・月次まとめ生成」など全AI処理のメソッドを定義
+     - 例: `def generate_summary_and_labels(self, article_text: str) -> Tuple[str, list]:`
+     - 必要に応じて型ヒント・ドキュメントコメントも追加
+  2. **OllamaLLMService, OpenAILLMServiceの実装拡張**
+     - interfaceで定義した全メソッドを実装
+     - 例: `def generate_pest_tags(self, article_text: str) -> Dict[str, list]:`
+     - LLM呼び出し部分はtry/exceptでエラーハンドリング
+  3. **usecase層のリファクタ**
+     - `pipeline/usecase/`配下でAI/DBアクセスしている箇所をservice経由に統一
+     - 例: `from ..service.llm_interface import get_llm_service` で取得し、interface経由で呼び出す
+     - 直接DBアクセスもrepository/service経由に整理
+  4. **ジョブ管理・進捗取得API/DB設計・実装**
+     - pipeline/main.pyまたはinterface/api.pyに「ジョブ開始」「進捗取得」APIを追加
+     - 例: `POST /api/jobs/start`, `GET /api/jobs/{job_id}/status`
+     - ジョブ情報はDB（例: jobsテーブル）で管理
+     - DBスキーマ例: `id, type, status, started_at, finished_at, result`
+  5. **ユースケース・APIのテスト作成・実行**
+     - `pipeline/tests/`配下にユースケース・APIのテストを追加
+     - テスト実行コマンド例: `pytest pipeline/tests/`
+     - ジョブ管理API・AI連携の正常系/異常系を網羅
+
+- [確認内容]
+  - pipeline層の各ユースケース（記事クロール・要約・タグ付け・カテゴリ分け）がinterface経由でAI/DBにアクセスしている
+  - ジョブ管理・進捗取得APIが動作し、DBにジョブ履歴が記録される
+  - すべてのテストがパスすること
+
+---
+
+---
+
+## 6. マイルストーン・タスク・テスト方針
+
+- マイルストーンごとの詳細タスク・確認内容を省略せず記載
+- テスト方針はフロント・バックエンド・パイプラインごとに分けて記載
+- すべてのE2E/UI/ユニットテストがパスすることを必須要件とする
+
+---
+
+## 7. AIエージェント運用ルール・注意点
+
+- AIによる自動修正時は必ずユーザー承認フローを経ること
+- ルール・設計・要件の逸脱が疑われる場合は必ずユーザーに確認
+- 変更理由・根拠・経緯を必ず記録し、履歴管理を徹底
+
+---
+
+## 8. 参考資料・テンプレート例
+
+- 配信テンプレート例、画面遷移図、API設計例、設計ドキュメント等を省略せず記載
+
+---
+
+# 【付録】  
+以下、1 frontend_topics_page_design.mdおよび2 refactor_full_plan.mdの内容を、上記章立てに従い省略せず全文記載すること。  
+（内容が長大な場合は、分割して複数ファイルに分けることも許可する）

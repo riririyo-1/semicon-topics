@@ -5,58 +5,58 @@ import { Autocomplete, TextField, CircularProgress } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { Topic } from './TopicsList';
 
+interface TopicOption {
+  id: number;
+  title: string;
+}
+
 export const TopicSearch: React.FC = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState<Topic[]>([]);
+  const [options, setOptions] = useState<TopicOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const router = useRouter();
-  
+
   useEffect(() => {
     let active = true;
-    
+
     if (inputValue === '') {
-      // 空の検索時は最近のTOPICS（最大5件）を表示
-      setLoading(true);
-      fetch('/api/topics?limit=5')
-        .then(response => response.json())
-        .then(data => {
-          if (active) {
-            setOptions(data);
-            setLoading(false);
-          }
-        })
-        .catch(() => {
-          setLoading(false);
-        });
+      setOptions([]);
       return undefined;
     }
-    
+
     setLoading(true);
-    
-    // 検索APIを呼び出す (500msのdebounce)
-    const timeoutId = setTimeout(() => {
-      fetch(`/api/topics/search?q=${encodeURIComponent(inputValue)}`)
-        .then(response => response.json())
-        .then(data => {
-          if (active) {
-            setOptions(data);
-            setLoading(false);
-          }
-        })
-        .catch(() => {
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/topics/search?q=${encodeURIComponent(inputValue)}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch topics');
+        }
+        const data = await response.json();
+        if (active) {
+          setOptions(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.error("Error fetching search results:", error);
+        if (active) {
+          setOptions([]);
+        }
+      } finally {
+        if (active) {
           setLoading(false);
-        });
-    }, 500);
-    
+        }
+      }
+    }, 300);
+
     return () => {
       active = false;
-      clearTimeout(timeoutId);
+      clearTimeout(timer);
     };
   }, [inputValue]);
-  
+
   return (
     <Autocomplete
+      id="topics-search"
       fullWidth
       open={open}
       onOpen={() => setOpen(true)}
@@ -65,6 +65,7 @@ export const TopicSearch: React.FC = () => {
       onInputChange={(_, newValue) => setInputValue(newValue)}
       options={options}
       getOptionLabel={(option) => option.title}
+      isOptionEqualToValue={(option, value) => option.id === value.id}
       loading={loading}
       onChange={(_, newValue) => {
         if (newValue) {

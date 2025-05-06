@@ -1,74 +1,58 @@
-'use client';
+"use client";
 
 import React, { useEffect } from 'react';
+import { 
+  Container, Box, Typography, CircularProgress, Alert, 
+  useTheme 
+} from '@mui/material';
 import { useParams } from 'next/navigation';
-import { Container, Typography, Box, CircularProgress, Alert } from '@mui/material';
-import { useTopicStore } from '@/stores/topicStore';
 import EditTabs from './components/EditTabs';
+import { useTopicStore } from '../../../../stores/topicStore';
 
-export default function TopicEditPage() {
-  const params = useParams();
-  const topicIdParam = params?.id; // id は string または string[] の可能性がある
-
-  // ストアのアクションと状態を取得
-  const { loadTopic, resetState, isLoading, error, title, id: storeId } = useTopicStore((state) => ({
-    loadTopic: state.loadTopic,
-    resetState: state.resetState,
-    isLoading: state.isLoading,
-    error: state.error,
-    title: state.title,
-    id: state.id,
-  }));
-
-  const isNew = topicIdParam === 'new';
-
+export default function EditTopicsPage() {
+  const { id } = useParams<{ id: string }>();
+  const theme = useTheme();
+  const { 
+    isLoading, 
+    error, 
+    loadTopic, 
+    resetState 
+  } = useTopicStore();
+  
+  // マウント時にTOPICS情報を読み込むか、新規作成の状態に初期化する
   useEffect(() => {
-    // マウント時に初期化またはデータ読み込み
-    if (isNew) {
-      console.log("Initializing for new topic...");
-      resetState(); // 新規作成時は状態をリセット
-    } else if (topicIdParam && typeof topicIdParam === 'string') {
-      const topicId = parseInt(topicIdParam, 10);
-      if (!isNaN(topicId)) {
-        console.log(`Loading topic with ID: ${topicId}`);
-        loadTopic(topicId);
-      } else {
-        // 不正なIDの場合のエラーハンドリング（必要に応じて）
-        console.error("Invalid topic ID parameter:", topicIdParam);
-      }
+    if (id === 'new') {
+      resetState();
+    } else {
+      loadTopic(Number(id));
     }
-
-    // アンマウント時に状態をリセット
+    
+    // アンマウント時にクリーンアップ
     return () => {
-      console.log("Resetting state on unmount...");
       resetState();
     };
-    // isNew, topicIdParam, loadTopic, resetState を依存配列に追加
-  }, [isNew, topicIdParam, loadTopic, resetState]);
-
-  const pageTitle = isNew ? '新規TOPICS作成' : (isLoading ? '読み込み中...' : (title || `TOPICS編集 (ID: ${storeId})`));
-
+  }, [id, resetState, loadTopic]);
+  
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {pageTitle}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ color: theme.palette.text.primary }}>
+          {id === 'new' ? '新規TOPICS作成' : 'TOPICS編集'}
         </Typography>
-
-        {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-
-        {error && !isLoading && (
-          <Alert severity="error" sx={{ my: 2 }}>
+        
+        {error && !error.includes('summary') && !error.includes('タイトル') && (
+          <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
         )}
-
-        {/* データロード完了後、または新規作成時にタブを表示 */}
-        {(!isLoading || isNew) && !error && <EditTabs />}
+        
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <EditTabs />
+        )}
       </Box>
     </Container>
   );

@@ -1,202 +1,143 @@
-'use client';
+"use client";
 
 import React from 'react';
 import { 
-  Paper, 
-  Typography, 
-  Box, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  Link,
-  Divider,
-  Chip
+  Typography, Box, Grid, FormControl, InputLabel, 
+  Select, MenuItem, Paper, Chip, Link, 
+  SelectChangeEvent, Stack
 } from '@mui/material';
-import LoadingButton from '@mui/lab/LoadingButton';
+import { LoadingButton } from '@mui/lab';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import { TopicArticle } from '@/types';
-import { useTopicStore } from '@/stores/topicStore';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { useTopicStore, TopicArticle } from '../../../../../stores/topicStore';
 
-// 大カテゴリの選択肢
-const MAJOR_CATEGORIES = [
-  '世の中の動き',
-  '半導体/電子部品業界の動き', 
-  '半導体製造装置業界の動き',
-  'その他'
-];
-
-// 小カテゴリの選択肢
-const MINOR_CATEGORIES = [
-  'テクノロジー動向',
-  'ビジネス戦略',
-  '市場予測・分析',
-  '法律・規制変更',
-  '地政学リスク',
-  '環境・持続可能性',
-  '研究開発',
-  'M&A・提携',
-  '人事・組織',
-  'その他'
-];
+// カテゴリ選択肢の定義
+const CATEGORIES = {
+  major: [
+    '技術動向', '市場動向', 'ビジネス', '製造技術', '研究開発',
+    'デバイス', '設計', '材料', '半導体装置', 'テスト・検査',
+    '実装', 'その他', '未分類'
+  ],
+  minor: [
+    'プロセス', 'ロジック', 'メモリ', 'パワー半導体', 'センサー',
+    'アナログ', 'FPGA', 'MCU', 'AI', 'ファウンドリ', 'IDM',
+    'サプライチェーン', 'M&A', '決算', 'スタートアップ', 'イベント',
+    'ニュース一般', 'その他', '未分類'
+  ]
+};
 
 interface TopicItemEditorProps {
   article: TopicArticle;
-  index: number;
 }
 
-export default function TopicItemEditor({ article, index }: TopicItemEditorProps) {
-  // Zustand storeからカテゴリ更新および自動分類関数を取得
-  const { 
-    updateArticleCategory, 
-    autoCategorizeArticle,
-    isCategorizing
-  } = useTopicStore(state => ({
-    updateArticleCategory: state.updateArticleCategory,
-    autoCategorizeArticle: state.autoCategorizeArticle,
-    isCategorizing: state.isCategorizing
-  }));
-
-  // この記事のカテゴリ自動設定中かどうか
-  const isLoadingCategories = isCategorizing[article.id] || false;
-
-  // ソース表示用の整形
-  const formattedSource = article.source ? article.source : '不明';
+const TopicItemEditor: React.FC<TopicItemEditorProps> = ({ article }) => {
+  const { updateArticleCategory, autoCategorizeArticle, isCategorizing } = useTopicStore();
   
-  // 日付表示用の整形
-  const formattedDate = article.published ? 
-    new Date(article.published).toLocaleDateString('ja-JP') : 
-    '日付不明';
-
-  // カテゴリ変更ハンドラー
-  const handleMajorCategoryChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    updateArticleCategory(article.id, event.target.value as string, article.categoryMinor);
+  // カテゴリ変更ハンドラ（大カテゴリ）
+  const handleMajorCategoryChange = (e: SelectChangeEvent) => {
+    updateArticleCategory(article.id, {
+      categoryMajor: e.target.value
+    });
   };
-
-  const handleMinorCategoryChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    updateArticleCategory(article.id, article.categoryMajor, event.target.value as string);
-  };
-
-  // カテゴリ自動設定ハンドラー
-  const handleAutoCategorize = async () => {
-    try {
-      await autoCategorizeArticle(article.id);
-    } catch (error) {
-      console.error(`Failed to auto-categorize article ${article.id}:`, error);
-    }
+  
+  // カテゴリ変更ハンドラ（小カテゴリ）
+  const handleMinorCategoryChange = (e: SelectChangeEvent<string[]>) => {
+    const value = e.target.value;
+    updateArticleCategory(article.id, {
+      categoryMinor: typeof value === 'string' ? [value] : value
+    });
   };
 
   return (
-    <Paper 
-      elevation={1} 
-      sx={{ 
-        p: 3, 
-        mb: 3,
-        position: 'relative'
-      }}
-    >
-      {/* 記事番号表示 */}
-      <Chip 
-        label={`#${index + 1}`} 
-        size="small" 
-        color="primary" 
-        sx={{ 
-          position: 'absolute',
-          top: 8,
-          right: 8
-        }} 
-      />
-      
-      {/* 記事タイトルと基本情報 */}
-      <Typography variant="h6" gutterBottom>
-        {article.title}
-      </Typography>
-
-      <Box sx={{ mb: 2, fontSize: '0.875rem', color: 'text.secondary' }}>
-        <Box component="span" sx={{ mr: 2 }}>
-          出典: {formattedSource}
-        </Box>
-        <Box component="span">
-          公開日: {formattedDate}
-        </Box>
-      </Box>
-      
-      {/* 記事URL */}
-      <Link 
-        href={article.url} 
-        target="_blank" 
-        rel="noopener noreferrer"
-        sx={{ display: 'block', mb: 2, wordBreak: 'break-all' }}
-      >
-        {article.url}
-      </Link>
-
-      {/* 要約（あれば表示） */}
-      {article.summary && (
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          {article.summary}
-        </Typography>
-      )}
-      
-      <Divider sx={{ my: 2 }} />
-
-      {/* カテゴリ選択セクション */}
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, mt: 2, gap: 2 }}>
-        {/* 大カテゴリ選択 */}
-        <FormControl variant="outlined" fullWidth>
-          <InputLabel id={`major-category-label-${article.id}`}>大カテゴリ</InputLabel>
-          <Select
-            labelId={`major-category-label-${article.id}`}
-            value={article.categoryMajor || ''}
-            onChange={handleMajorCategoryChange}
-            label="大カテゴリ"
-          >
-            <MenuItem value="">
-              <em>未選択</em>
-            </MenuItem>
-            {MAJOR_CATEGORIES.map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
-              </MenuItem>
+    <Paper variant="outlined" sx={{ p: 2 }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Typography variant="subtitle1">
+            <Link href={article.url} target="_blank" rel="noopener noreferrer" sx={{ display: 'flex', alignItems: 'center' }}>
+              {article.title}
+              <OpenInNewIcon fontSize="small" sx={{ ml: 0.5 }} />
+            </Link>
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            {article.source} | {article.published ? new Date(article.published).toLocaleDateString('ja-JP') : '日付不明'}
+          </Typography>
+          
+          <Stack direction="row" spacing={0.5} flexWrap="wrap" mb={1}>
+            {article.labels?.map((label) => (
+              <Chip
+                key={label}
+                label={label}
+                size="small"
+                sx={{ mb: 0.5, fontSize: '0.7rem' }}
+              />
             ))}
-          </Select>
-        </FormControl>
-
-        {/* 小カテゴリ選択 */}
-        <FormControl variant="outlined" fullWidth>
-          <InputLabel id={`minor-category-label-${article.id}`}>小カテゴリ</InputLabel>
-          <Select
-            labelId={`minor-category-label-${article.id}`}
-            value={article.categoryMinor || ''}
-            onChange={handleMinorCategoryChange}
-            label="小カテゴリ"
-          >
-            <MenuItem value="">
-              <em>未選択</em>
-            </MenuItem>
-            {MINOR_CATEGORIES.map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {/* 自動カテゴリ設定ボタン */}
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          </Stack>
+          
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {article.summary}
+          </Typography>
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={4}>
+          <FormControl fullWidth size="small">
+            <InputLabel id={`major-category-label-${article.id}`}>大カテゴリ</InputLabel>
+            <Select
+              labelId={`major-category-label-${article.id}`}
+              id={`major-category-${article.id}`}
+              value={article.categoryMajor || '未分類'}
+              label="大カテゴリ"
+              onChange={handleMajorCategoryChange}
+            >
+              {CATEGORIES.major.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={4}>
+          <FormControl fullWidth size="small">
+            <InputLabel id={`minor-category-label-${article.id}`}>小カテゴリ</InputLabel>
+            <Select
+              labelId={`minor-category-label-${article.id}`}
+              id={`minor-category-${article.id}`}
+              value={article.categoryMinor || []}
+              multiple
+              label="小カテゴリ"
+              onChange={handleMinorCategoryChange}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip key={value} label={value} size="small" />
+                  ))}
+                </Box>
+              )}
+            >
+              {CATEGORIES.minor.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        
+        <Grid item xs={12} sm={12} md={4} sx={{ display: 'flex', alignItems: 'center' }}>
           <LoadingButton
             variant="outlined"
-            color="secondary"
-            onClick={handleAutoCategorize}
-            loading={isLoadingCategories}
-            loadingPosition="start"
+            size="small"
+            loading={isCategorizing[article.id] || false}
             startIcon={<AutoFixHighIcon />}
-            sx={{ whiteSpace: 'nowrap', minWidth: '200px' }}
+            onClick={() => autoCategorizeArticle(article.id)}
           >
-            LLMによる自動分類
+            LLM自動分類
           </LoadingButton>
-        </Box>
-      </Box>
+        </Grid>
+      </Grid>
     </Paper>
   );
-}
+};
+
+export default TopicItemEditor;
