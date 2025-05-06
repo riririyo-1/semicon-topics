@@ -91,7 +91,7 @@ class OllamaLLMService(LLMInterface):
 
     def generate_monthly_summary(self, articles: List[str]) -> str:
         prompt = (
-            "以下は今月の主要な記事リストです。全体を要約し、月の動向・ポイントを200字以内でまとめてください。\n"
+            "以下は今月の主要な半導体業界の記事リストです。全体を総括して大勢の人に伝えたいので、半導体業界の動向・ポイントを200字以内でまとめてください。\n"
             + "\n\n".join(articles)
         )
         try:

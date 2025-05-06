@@ -83,7 +83,8 @@ class OpenAILLMService(LLMInterface):
         prompt = PromptTemplate(
             input_variables=["articles"],
             template=(
-                "以下は今月の主要な記事リストです。全体を要約し、月の動向・ポイントを400字以内でまとめてください。\n"
+                "以下は今回の半導体TOPICSの主要な記事リストです。"
+                "全体を総括して大勢の人に伝えたいので、この期間の半導体業界の動向・ポイントを500字程度でまとめてください。\n"
                 "{articles}"
             ),
         )

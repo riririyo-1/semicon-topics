@@ -111,7 +111,7 @@ def get_articles_by_topics_id(topics_id: int) -> list:
                         ta.category_main, ta.category_sub
                 FROM topics_articles ta
                 JOIN articles a ON ta.article_id = a.id
-                WHERE ta.topics_id = %s
+                WHERE ta.topic_id = %s
                 ORDER BY a.published DESC NULLS LAST, a.created_at DESC
                 """,
                 (topics_id,)
