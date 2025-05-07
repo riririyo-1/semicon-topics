@@ -130,6 +130,11 @@ const PreviewTab: React.FC = () => {
                             {`${article.source} | ${article.published ? new Date(article.published).toLocaleDateString('ja-JP') : '日付不明'}`}
                           </Typography>
                           <Typography variant="body2" sx={{ mt: 0.5 }}>{article.summary}</Typography>
+                          <Box sx={{ mt: 0.5 }}>
+                            <Typography variant="caption" component="span" sx={{ mr: 1 }}>
+                              大分類: {article.categoryMajor || '未分類'}
+                            </Typography>
+                          </Box>
                           <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap' }}>
                             <Typography variant="caption" component="span" sx={{ mr: 1 }}>
                               小カテゴリ: 

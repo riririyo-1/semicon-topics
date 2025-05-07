@@ -37,8 +37,20 @@ const TemplateOutputTab: React.FC = () => {
               各記事のカテゴリを設定してください。LLM自動分類ボタンで、AIがカテゴリを提案します。
             </Typography>
             {sortedArticles.map((article, index) => (
-              <Box key={article.id} sx={{ mb: 2, pb: 2, borderBottom: index < sortedArticles.length - 1 ? '1px solid #eee' : 'none' }}>
-                <TopicItemEditor 
+              <Box
+                key={article.id}
+                sx={{
+                  mb: 2,
+                  pb: 2,
+                  borderBottom: (theme) =>
+                    index < sortedArticles.length - 1
+                      ? `1px solid ${theme.palette.divider}`
+                      : 'none',
+                  color: 'text.primary',
+                  bgcolor: 'background.paper',
+                }}
+              >
+                <TopicItemEditor
                   article={article}
                 />
               </Box>

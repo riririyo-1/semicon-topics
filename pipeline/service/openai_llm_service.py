@@ -30,9 +30,9 @@ class OpenAILLMService(LLMInterface):
         prompt_tags = PromptTemplate(
             input_variables=["article_summary"],
             template=(
-                "次の記事の要約から、トピックを表すタグを生成して："
-                "{article_summary}\n"
-                "登場する企業、業界、分類を表すような2～10個の単語または短いフレーズを、カンマ区切りで。"
+                "次の記事の文章から、トピックを表すタグを生成して："
+                "{article_text}\n"
+                "登場する企業、業界、分類を表すような5～10個の単語または短いフレーズを、半角のカンマ「,」区切りで。"
             ),
         )
         chain_tags = LLMChain(llm=self.llm, prompt=prompt_tags, output_key="article_tags")

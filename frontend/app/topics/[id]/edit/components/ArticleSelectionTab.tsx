@@ -26,7 +26,7 @@ const mapArticleToTopicArticle = (article: Article): Omit<StoreTopicArticle, 'di
     url: article.url,
     source: article.source,
     summary: article.summary,
-    labels: article.tags,
+    labels: article.labels,
     thumbnailUrl: article.thumbnail,
     published: article.published,
   };
@@ -43,7 +43,7 @@ const ArticleSelectionTab: React.FC = () => {
   const [filters, setFilters] = useState<ArticleFilters>({
     startDate: null,
     endDate: null,
-    tags: []
+    labels: []
   });
   const [isArticleLoading, setIsArticleLoading] = useState(false);
   const [articleError, setArticleError] = useState<string | null>(null);
@@ -75,8 +75,8 @@ const ArticleSelectionTab: React.FC = () => {
           const formattedEndDate = new Date(filters.endDate).toISOString().split('T')[0];
           params.append('endDate', formattedEndDate);
         }
-        if (filters.tags && filters.tags.length > 0) {
-          filters.tags.forEach(tag => params.append('tags', tag));
+        if (filters.labels && filters.labels.length > 0) {
+          filters.labels.forEach(label => params.append('labels', label));
         }
         // クエリパラメータがない場合は空の文字列を渡す
         const queryString = params.toString();
@@ -160,7 +160,7 @@ const ArticleSelectionTab: React.FC = () => {
     return items.filter(item =>
       item.title.toLowerCase().includes(term) || 
       (item.summary && item.summary.toLowerCase().includes(term)) ||
-      (item.tags && item.tags.some(tag => tag.toLowerCase().includes(term)))
+      (item.labels && item.labels.some(label => label.toLowerCase().includes(term)))
     );
   };
   

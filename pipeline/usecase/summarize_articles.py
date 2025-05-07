@@ -15,7 +15,7 @@ def summarize_articles(limit: int = 20) -> dict:
     with get_db_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, title, url, source, created_at FROM articles WHERE summary IS NULL OR summary = '' LIMIT %s",
+                "SELECT id, title, url, source, created_at, content FROM articles WHERE summary IS NULL OR summary = '' LIMIT %s",
                 (limit,)
             )
             rows = cur.fetchall()
@@ -25,12 +25,30 @@ def summarize_articles(limit: int = 20) -> dict:
                         title=row["title"],
                         url=row["url"],
                         source=row["source"],
-                        published=row["created_at"] if isinstance(row["created_at"], datetime) else datetime.fromisoformat(str(row["created_at"]))
+                        published=row["created_at"] if isinstance(row["created_at"], datetime) else datetime.fromisoformat(str(row["created_at"])),
+                        content=row.get("content", "")
                     )
-                    # 記事本文をURLから取得
-                    content = fetch_article_text(article.url)
-                    # 本文が取得できない場合はタイトルのみで要約
-                    summary, labels = llm.generate_summary_and_labels(content or article.title)
+                    
+                    # 記事本文を取得（DBに保存されている場合はそれを使用、なければURLから取得）
+                    content = article.content
+                    if not content:
+                        print(f"[INFO] Fetching article text from URL: {article.url}")
+                        content = fetch_article_text(article.url)
+                        # DBのcontentフィールドを更新
+                        if content:
+                            cur.execute(
+                                "UPDATE articles SET content=%s WHERE id=%s",
+                                (content, row["id"])
+                            )
+                    
+                    # 本文が取得できない場合はタイトルとURLを組み合わせて要約
+                    if not content:
+                        print(f"[WARN] Failed to get article content, using title and URL for summary: {article.url}")
+                        input_for_llm = f"タイトル: {article.title}\nURL: {article.url}\n出典: {article.source}"
+                    else:
+                        input_for_llm = f"タイトル: {article.title}\n出典: {article.source}\nURL: {article.url}\n本文: {content}"
+                        
+                    summary, labels = llm.generate_summary_and_labels(input_for_llm)
                     cur.execute(
                         "UPDATE articles SET summary=%s, labels=%s WHERE id=%s",
                         (summary, json.dumps(labels, ensure_ascii=False), row["id"])

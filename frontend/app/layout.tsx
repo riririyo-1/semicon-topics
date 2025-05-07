@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   width: "100%",
                   bgcolor: "#064e3b",
                   color: "#fff",
-                  py: 3,
+                  py: 2,
                   textAlign: "center",
                   fontWeight: 700,
                   fontSize: 22,
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 }}>
                   半導体TOPICS
                 </Box>
-                <List sx={{ mt: 2 }}>
+                <List sx={{ mt: 1 }}>
                   {NAV.map((n) => (
                     <ListItem key={n.href} disablePadding>
                       <ListItemButton component={Link} href={n.href}>
@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   ))}
                 </List>
               </Box>
-              <Box sx={{ p: 2, borderTop: "1px solid #eee", textAlign: "center" }}>
+              <Box sx={{ p: 1, borderTop: "1px solid #eee", textAlign: "center" }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -70,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Box>
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "background.default", display: "flex", flexDirection: "column" }}>
-              <Container maxWidth="lg" sx={{ py: 4, px: { xs: 1, sm: 2, md: 4 } }}>
+              <Container maxWidth="lg" sx={{ py: 2, px: { xs: 0.5, sm: 1, md: 2 } }}>
                 {children}
               </Container>
             </Box>

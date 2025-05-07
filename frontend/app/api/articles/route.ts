@@ -21,6 +21,30 @@ export async function GET(req: NextRequest) {
   });
 }
 
+export async function POST(req: NextRequest) {
+  try {
+    const articleData = await req.json();
+    
+    const res = await fetch("http://api:4000/api/articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(articleData),
+    });
+    
+    const data = await res.json();
+    
+    return new NextResponse(JSON.stringify(data), {
+      status: res.status,
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (e) {
+    return new NextResponse(JSON.stringify({ error: "記事の追加に失敗しました" }), { 
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const { ids } = await req.json();

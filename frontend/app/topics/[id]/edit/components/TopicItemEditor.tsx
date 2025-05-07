@@ -40,17 +40,17 @@ const TopicItemEditor: React.FC<TopicItemEditorProps> = ({ article }) => {
     });
   };
   
-  // カテゴリ変更ハンドラ（小カテゴリ）
-  const handleMinorCategoryChange = (e: SelectChangeEvent<string[]>) => {
-    const value = e.target.value;
+  // カテゴリ変更ハンドラ（小カテゴリ） 単一選択
+  const handleMinorCategoryChange = (e: SelectChangeEvent) => {
     updateArticleCategory(article.id, {
-      categoryMinor: typeof value === 'string' ? [value] : value
+      categoryMinor: [e.target.value]
     });
   };
 
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
       <Grid container spacing={2}>
+        {/* @ts-ignore */}
         <Grid item xs={12}>
           <Typography variant="subtitle1">
             <Link href={article.url} target="_blank" rel="noopener noreferrer" sx={{ display: 'flex', alignItems: 'center' }}>
@@ -78,6 +78,7 @@ const TopicItemEditor: React.FC<TopicItemEditorProps> = ({ article }) => {
           </Typography>
         </Grid>
         
+        {/* @ts-ignore */}
         <Grid item xs={12} sm={6} md={4}>
           <FormControl fullWidth size="small">
             <InputLabel id={`major-category-label-${article.id}`}>大カテゴリ</InputLabel>
@@ -97,23 +98,16 @@ const TopicItemEditor: React.FC<TopicItemEditorProps> = ({ article }) => {
           </FormControl>
         </Grid>
         
+        {/* @ts-ignore */}
         <Grid item xs={12} sm={6} md={4}>
           <FormControl fullWidth size="small">
             <InputLabel id={`minor-category-label-${article.id}`}>小カテゴリ</InputLabel>
             <Select
               labelId={`minor-category-label-${article.id}`}
               id={`minor-category-${article.id}`}
-              value={article.categoryMinor || []}
-              multiple
+              value={article.categoryMinor && article.categoryMinor.length > 0 ? article.categoryMinor[0] : ''}
               label="小カテゴリ"
               onChange={handleMinorCategoryChange}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip key={value} label={value} size="small" />
-                  ))}
-                </Box>
-              )}
             >
               {CATEGORIES.minor.map((category) => (
                 <MenuItem key={category} value={category}>
@@ -124,6 +118,7 @@ const TopicItemEditor: React.FC<TopicItemEditorProps> = ({ article }) => {
           </FormControl>
         </Grid>
         
+        {/* @ts-ignore */}
         <Grid item xs={12} sm={12} md={4} sx={{ display: 'flex', alignItems: 'center' }}>
           <LoadingButton
             variant="outlined"

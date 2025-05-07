@@ -15,31 +15,35 @@ const fetcher = (url: string) => fetch(url).then(res => {
 
 export default function TopicsPage() {
   const theme = useTheme();
-  
-  // useSWRでデータ取得
-  const { data: topics, error, isLoading } = useSWR<Topic[]>('/api/topics', fetcher);
-  
+  const [searchInput, setSearchInput] = React.useState('');
+  const [search, setSearch] = React.useState('');
+  const searchParam = search ? `?search=${encodeURIComponent(search)}` : '';
+  const { data: topics, error, isLoading } = useSWR<Topic[]>(`/api/topics${searchParam}`, fetcher);
+
+  const handleSearch = () => {
+    setSearch(searchInput);
+  };
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ color: theme.palette.text.primary }}>
-          TOPICS配信管理
-        </Typography>
-        
-        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-          <Box sx={{ flexGrow: 1 }}>
-            <TopicSearch />
-          </Box>
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+          <Typography variant="h4" component="h1" gutterBottom sx={{ color: theme.palette.text.primary }}>
+            TOPICS配信管理
+          </Typography>
           <CreateTopicButton />
         </Stack>
-        
+        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+          <Box sx={{ flexGrow: 1 }}>
+            <TopicSearch inputValue={searchInput} onInputChange={setSearchInput} onSearch={handleSearch} />
+          </Box>
+        </Stack>
         {/* エラー表示 */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error.message || 'TOPICSの取得中にエラーが発生しました'}
           </Alert>
         )}
-        
         {/* ローディング表示 */}
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>

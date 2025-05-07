@@ -10,7 +10,7 @@ export interface Article {
   updatedAt: string;
   thumbnail?: string;
   summary?: string;
-  tags?: string[]; // store の labels に対応
+  labels?: string[]; // store の labels に対応
   source?: string;
 }
 
@@ -55,7 +55,7 @@ export interface ArticlesApiResponse {
 }
 
 export interface ArticleFilters {
-  startDate: string | null;
-  endDate: string | null;
-  tags: string[];
+  startDate: Date | null;
+  endDate: Date | null;
+  labels: string[];
 }

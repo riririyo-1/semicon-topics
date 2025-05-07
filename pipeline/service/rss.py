@@ -106,7 +106,8 @@ def fetch_rss_articles(start_date: date, end_date: date, sources: Optional[List[
                         published=pub_dt,
                         summary=summary,
                         labels=labels,
-                        thumbnail_url=thumbnail
+                        thumbnail_url=thumbnail,
+                        content=content
                     ))
             except Exception as e:
                 print(f"[ERROR] Failed RSS fetch for {source} ({url}): {e}")

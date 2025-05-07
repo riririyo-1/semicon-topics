@@ -11,6 +11,7 @@ ALTER TABLE articles ADD COLUMN IF NOT EXISTS summary TEXT;
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS labels JSONB;
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS published TIMESTAMP;
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS content TEXT; -- 記事本文を保存するカラムを追加
 
 -- topicsテーブル
 CREATE TABLE IF NOT EXISTS topics (

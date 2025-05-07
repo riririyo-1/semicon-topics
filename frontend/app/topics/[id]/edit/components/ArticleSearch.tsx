@@ -2,7 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Autocomplete, TextField, CircularProgress } from '@mui/material';
-import { Article } from './ArticleSelectionTab';
+type Article = {
+  id: number;
+  title: string;
+  url: string;
+  source: string;
+  published: string;
+  summary: string;
+  labels: string[];
+  thumbnailUrl?: string;
+};
 
 interface ArticleSearchProps {
   onArticleSelect: (article: Article) => void;
@@ -26,11 +35,18 @@ const ArticleSearch: React.FC<ArticleSearchProps> = ({ onArticleSelect }) => {
     
     // 検索APIを呼び出す (400msのdebounce)
     const timeoutId = setTimeout(() => {
-      fetch(`/api/articles/search?q=${encodeURIComponent(inputValue)}`)
+      fetch(`/api/articles?q=${encodeURIComponent(inputValue)}`)
         .then(response => response.json())
         .then(data => {
           if (active) {
-            setOptions(data || []);
+            // dataが配列ならそのまま、オブジェクトならdata.itemsを参照
+            if (Array.isArray(data)) {
+              setOptions(data);
+            } else if (Array.isArray(data.items)) {
+              setOptions(data.items);
+            } else {
+              setOptions([]);
+            }
             setLoading(false);
           }
         })

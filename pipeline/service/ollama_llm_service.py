@@ -59,7 +59,7 @@ class OllamaLLMService(LLMInterface):
     def generate_summary_and_labels(self, article_text: str) -> Tuple[str, List[str]]:
         prompt = (
             f"次の文章を200字以内で要約して。語尾は断定形で:\n{article_text}\n"
-            "その要約から、登場する企業、業界、分類を表す2～10個の単語または短いフレーズをカンマ区切りで抽出し、"
+            "その要約から、登場する企業、業界、分類を表す2～10個の単語または短いフレーズを半角のカンマ「,」区切りで抽出し、"
             "要約とタグをそれぞれJSONで返してください。例: {\"summary\": \"...\", \"labels\": [\"...\", ...]}"
         )
         try:

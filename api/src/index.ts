@@ -249,7 +249,7 @@ app.get("/api/articles/:id", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid id" });
     }
     const result = await pool.query(
-      "SELECT id, title, url, source, created_at, summary, labels, thumbnail_url, published FROM articles WHERE id = $1",
+      "SELECT id, title, url, source, created_at, summary, labels, thumbnail_url, published, content FROM articles WHERE id = $1",
       [id]
     );
     if (result.rows.length === 0) {
@@ -269,7 +269,8 @@ app.get("/api/articles/:id", async (req: Request, res: Response) => {
             ? JSON.parse(row.labels)
             : (row.labels ? row.labels : [])),
       thumbnailUrl: row.thumbnail_url ?? "",
-      published: row.published ?? ""
+      published: row.published ?? "",
+      content: row.content ?? ""
     };
     res.json(article);
   } catch (err: any) {
@@ -352,6 +353,50 @@ app.delete("/api/articles", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+/**
+ * @swagger
+ * /api/articles/labels:
+ *   get:
+ *     tags: [Articles]
+ *     summary: 全記事のラベル一覧を取得
+ *     responses:
+ *       200:
+ *         description: 一意なラベル配列
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ */
+app.get("/api/articles/labels", async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT labels FROM articles");
+    // labelsカラムは配列またはJSON文字列の可能性があるので両対応
+    let allLabels: string[] = [];
+    for (const row of result.rows) {
+      let labels: string[] = [];
+      if (Array.isArray(row.labels)) {
+        labels = row.labels;
+      } else if (typeof row.labels === "string") {
+        try {
+          labels = JSON.parse(row.labels);
+        } catch {
+          labels = [];
+        }
+      }
+      if (Array.isArray(labels)) {
+        allLabels.push(...labels);
+      }
+    }
+    // 重複除去し、空文字やnullも除外
+    const uniqueLabels = Array.from(new Set(allLabels)).filter(l => l && l.trim() !== "");
+    res.json(uniqueLabels);
+  } catch (err: any) {
+    console.error("Error fetching article labels:", err);
+    res.status(500).json({ error: err.message, items: [] });
+  }
+});
 
 
 /**
@@ -425,8 +470,46 @@ app.post(
 *         description: バッチ実行結果
 */
 
+/**
+ * @swagger
+ * /api/topics:
+ *   get:
+ *     tags: [Topics]
+ *     summary: TOPICS一覧取得（検索対応）
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: タイトル部分一致検索
+ *     responses:
+ *       200:
+ *         description: TOPICSのリスト
+ */
+app.get("/api/topics", async (req: Request, res: Response) => {
+  try {
+    const search = req.query.search as string | undefined;
+    let sql = `SELECT id, title, month, created_at, updated_at, monthly_summary, template_html FROM topics`;
+    let params: any[] = [];
+    if (search && search.trim() !== "") {
+      sql += ` WHERE title ILIKE $1`;
+      params.push(`%${search}%`);
+    }
+    sql += ` ORDER BY created_at DESC`;
+    console.log("[/api/topics] search param:", search);
+    console.log("[/api/topics] SQL:", sql);
+    console.log("[/api/topics] params:", params);
+    const result = await pool.query(sql, params);
+    console.log("[/api/topics] result count:", result.rows.length);
+    res.json(result.rows);
+  } catch (err: any) {
+    console.error("Error fetching topics:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.post("/api/topics/search", async (req: Request, res: Response) => {
   const searchQuery = req.query.q;
+  console.log("[/api/topics/search] req.query.q:", searchQuery);
 
   if (!searchQuery || typeof searchQuery !== 'string') {
     return res.status(400).json({ error: "検索キーワード 'q' が必要です。" });
@@ -437,6 +520,7 @@ app.post("/api/topics/search", async (req: Request, res: Response) => {
       'SELECT id, title FROM topics WHERE title ILIKE $1 ORDER BY updated_at DESC LIMIT 10',
       [`%${searchQuery}%`]
     );
+    console.log("[/api/topics/search] result.rows:", result.rows);
     res.json(result.rows);
   } catch (err: any) {
     console.error("Error searching topics:", err);

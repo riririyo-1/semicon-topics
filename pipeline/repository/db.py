@@ -37,8 +37,8 @@ def save_articles(articles: List[Article]) -> dict:
                         continue
                     cur.execute(
                         """
-                        INSERT INTO articles (title, url, source, summary, labels, thumbnail_url, created_at, published)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO articles (title, url, source, summary, labels, thumbnail_url, created_at, published, content)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """,
                         (
                             art.title,
@@ -48,7 +48,8 @@ def save_articles(articles: List[Article]) -> dict:
                             json.dumps(art.labels) if art.labels is not None else "[]",
                             thumbnail_url,
                             published,
-                            published
+                            published,
+                            art.content
                         )
                     )
                     inserted += 1
@@ -80,7 +81,7 @@ def get_latest_articles(limit: int = 10) -> list:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, title, url, source, summary, labels, thumbnail_url, published
+                SELECT id, title, url, source, summary, labels, thumbnail_url, published, content
                 FROM articles
                 ORDER BY published DESC NULLS LAST, created_at DESC
                 LIMIT %s
@@ -107,7 +108,7 @@ def get_articles_by_topics_id(topics_id: int) -> list:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT a.id, a.title, a.url, a.source, a.summary, a.labels, a.thumbnail_url, a.published,
+                SELECT a.id, a.title, a.url, a.source, a.summary, a.labels, a.thumbnail_url, a.published, a.content,
                         ta.category_main, ta.category_sub
                 FROM topics_articles ta
                 JOIN articles a ON ta.article_id = a.id

@@ -15,6 +15,7 @@ class Article:
     :param summary: 要約
     :param labels: ラベルリスト
     :param thumbnail_url: サムネイル画像URL
+    :param content: 記事本文
     """
     title: str
     url: str
@@ -23,3 +24,4 @@ class Article:
     summary: str = ""
     labels: List[str] = field(default_factory=list)
     thumbnail_url: str = ""
+    content: str = ""

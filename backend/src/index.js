@@ -21,6 +21,39 @@ app.get('/api/articles', async (req, res) => {
   }
 });
 
+// 手動記事追加APIエンドポイント
+app.post('/api/articles', async (req, res) => {
+  try {
+    const { title, url, published, source } = req.body;
+    
+    // バリデーション
+    if (!title || !url) {
+      return res.status(400).json({ error: 'タイトルとURLは必須です' });
+    }
+
+    // URLの重複チェック
+    const existingCheck = await pool.query('SELECT id FROM articles WHERE url = $1', [url]);
+    if (existingCheck.rows.length > 0) {
+      return res.status(409).json({ error: '同じURLの記事が既に存在します' });
+    }
+
+    const publishedDate = published ? new Date(published) : new Date();
+    
+    const result = await pool.query(
+      'INSERT INTO articles (title, url, source, published, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id',
+      [title, url, source || '手動追加', publishedDate]
+    );
+    
+    res.status(201).json({ 
+      id: result.rows[0].id,
+      message: '記事が追加されました' 
+    });
+  } catch (err) {
+    console.error('Error adding article:', err);
+    res.status(500).json({ error: '記事の追加中にエラーが発生しました' });
+  }
+});
+
 app.delete('/api/articles', async (req, res) => {
   try {
     const { ids } = req.body;
