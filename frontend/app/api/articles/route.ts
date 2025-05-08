@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   try {
     const articleData = await req.json();
     
-    const res = await fetch("http://api:4000/api/articles", {
+    const res = await fetch("http://backend:4000/api/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(articleData),
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { ids } = await req.json();
-    const res = await fetch("http://api:4000/api/articles", {
+    const res = await fetch("http://backend:4000/api/articles", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids }),

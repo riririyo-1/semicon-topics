@@ -179,7 +179,7 @@ export default function CrawlPage() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: "auto", mt: 4 }}>
+    <Box sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom color="text.primary">記事収集</Typography>
       
       <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
@@ -328,14 +328,14 @@ export default function CrawlPage() {
 
       <Typography variant="h6" mt={4} mb={1} color="text.primary">記事一覧</Typography>
       <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-        <Table size="small" stickyHeader>
+        <Table size="small" stickyHeader sx={{ tableLayout: 'fixed', width: '100%' }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ color: theme.palette.text.primary }}>日付</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>タイトル</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>出展元</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>要約</TableCell>
-              <TableCell sx={{ color: theme.palette.text.primary }}>ラベル</TableCell>
+              <TableCell sx={{ width: '100px', color: theme.palette.text.primary }}>日付</TableCell>
+              <TableCell sx={{ width: '300px', color: theme.palette.text.primary }}>タイトル</TableCell>
+              <TableCell sx={{ width: '150px', color: theme.palette.text.primary }}>出典元</TableCell>
+              <TableCell sx={{ width: '200px', color: theme.palette.text.primary }}>要約</TableCell>
+              <TableCell sx={{ width: '200px' }}>ラベル</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -350,15 +350,15 @@ export default function CrawlPage() {
             ) : (
               articles.map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell sx={{ color: theme.palette.text.primary }}>{a.published ? new Date(a.published).toLocaleDateString() : ""}</TableCell>
-                  <TableCell sx={{ color: theme.palette.text.primary }}>
+                  <TableCell sx={{ width: '100px', color: theme.palette.text.primary }}>{a.published ? new Date(a.published).toLocaleDateString() : ""}</TableCell>
+                  <TableCell sx={{ width: '300px', color: theme.palette.text.primary }}>
                     <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: theme.palette.primary.main }}>{a.title}</a>
                   </TableCell>
-                  <TableCell sx={{ color: theme.palette.text.primary }}>{a.source}</TableCell>
-                  <TableCell sx={{ color: theme.palette.text.primary }}>
+                  <TableCell sx={{ width: '150px', color: theme.palette.text.primary }}>{a.source}</TableCell>
+                  <TableCell sx={{ width: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: theme.palette.text.primary }}>
                     {a.summary ? a.summary.slice(0, 40) + (a.summary.length > 40 ? "..." : "") : ""}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '200px', overflow: 'hidden' }}>
                     {a.labels && a.labels.map((label) => (
                       <Chip key={label} label={label} size="small" sx={{ mr: 0.5, mb: 0.5, bgcolor: chipBg, color: chipColor }} />
                     ))}

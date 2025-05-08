@@ -15,7 +15,8 @@ const NAV = [
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const [darkMode, setDarkMode] = useState(false);
+  // デフォルトをダークモードに設定
+  const [darkMode, setDarkMode] = useState(true);
 
   return (
     <html lang="ja">
@@ -70,7 +71,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Box>
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "background.default", display: "flex", flexDirection: "column" }}>
-              <Container maxWidth="lg" sx={{ py: 2, px: { xs: 0.5, sm: 1, md: 2 } }}>
+              {/* 全幅利用のため Container を無制限に変更 */}
+              <Container disableGutters maxWidth={false} sx={{ py: 2, px: { xs: 1, sm: 2, md: 4 } }}>
                 {children}
               </Container>
             </Box>

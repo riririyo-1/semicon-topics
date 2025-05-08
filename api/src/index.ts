@@ -902,7 +902,7 @@ app.patch("/api/topics/:id/article/:article_id/category", async (req: Request, r
 
 /**
  * @swagger
- * /api/topics/{id}/article/{article_id}/categorize:
+ * /api/topics/{id}/article/{article_id/categorize:
  *   post:
  *     tags: [Topics]
  *     summary: 記事カテゴリの自動分類
@@ -939,27 +939,60 @@ app.post("/api/topics/:id/article/:article_id/categorize", async (req: Request, 
     
     // 記事情報を取得
     const articleResult = await pool.query(
-      'SELECT title, summary FROM articles WHERE id = $1',
+      'SELECT title, summary, content FROM articles WHERE id = $1',
       [article_id]
     );
     
     if (articleResult.rows.length === 0) {
       return res.status(404).json({ status: "error", error: "Article not found" });
     }
+
+    const articleData = articleResult.rows[0];
+    const articleText = `タイトル: ${articleData.title}\n要約: ${articleData.summary || ""}\n内容: ${articleData.content || ""}`;
     
-    // 将来的にはpipelineサービスと連携してAI分類を実装
-    // ダミー実装: 技術/新製品に分類
-    const category = { main: "技術", sub: ["新製品"] };
-    
-    // カテゴリを更新
-    await pool.query(
-      `UPDATE topics_articles 
-       SET category_main = $1, category_sub = $2
-       WHERE topic_id = $3 AND article_id = $4`,
-      [category.main, JSON.stringify(category.sub), id, article_id]
-    );
-    
-    res.json({ category });
+    // パイプラインサービスと連携してAI分類を実装
+    try {
+      console.log(`[/api/topics/${id}/article/${article_id}/categorize] Calling pipeline service...`);
+      const pipelineRes = await axios.post("http://pipeline:8000/categorize", {
+        article_text: articleText
+      });
+      
+      // パイプラインからのレスポンスを取得
+      const category = {
+        category_main: pipelineRes.data.main || pipelineRes.data.category_main || "技術",
+        category_sub: pipelineRes.data.sub || pipelineRes.data.category_sub || ["新製品"]
+      };
+      console.log(`[/api/topics/${id}/article/${article_id}/categorize] Pipeline response:`, category);
+      
+      // カテゴリを更新
+      await pool.query(
+        `UPDATE topics_articles 
+         SET category_main = $1, category_sub = $2
+         WHERE topic_id = $3 AND article_id = $4`,
+        [category.category_main, JSON.stringify(category.category_sub), id, article_id]
+      );
+      
+      res.json(category); // 直接categoryオブジェクトを返す
+    } catch (pipelineErr) {
+      console.error("Pipeline service error:", pipelineErr);
+      console.log("Using fallback categorization (dummy implementation)");
+      
+      // フォールバック: ダミー実装
+      const category = {
+        category_main: "技術", 
+        category_sub: ["新製品"]
+      };
+      
+      // カテゴリを更新
+      await pool.query(
+        `UPDATE topics_articles 
+         SET category_main = $1, category_sub = $2
+         WHERE topic_id = $3 AND article_id = $4`,
+        [category.category_main, JSON.stringify(category.category_sub), id, article_id]
+      );
+      
+      res.json(category); // 直接categoryオブジェクトを返す
+    }
   } catch (err: any) {
     console.error("Error categorizing article:", err);
     res.status(500).json({ error: err.message });

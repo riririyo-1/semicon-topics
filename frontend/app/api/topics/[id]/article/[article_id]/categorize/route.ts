@@ -7,7 +7,7 @@ export async function POST(
 ) {
   try {
     const res = await fetch(
-      `http://api:4000/api/topics/${params.id}/article/${params.article_id}/categorize`, 
+      `http://backend:4000/api/topics/${params.id}/article/${params.article_id}/categorize`, 
       {
         method: "POST",
         headers: { "Content-Type": "application/json" }

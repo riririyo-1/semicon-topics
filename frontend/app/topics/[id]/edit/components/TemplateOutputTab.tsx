@@ -21,12 +21,12 @@ const TemplateOutputTab: React.FC = () => {
   return (
     <Box>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h6" gutterBottom>月次まとめ</Typography>
+        <Typography variant="h6" gutterBottom color="text.primary">月次まとめ</Typography>
         <SummaryEditor />
       </Box>
       
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>カテゴリ設定</Typography>
+        <Typography variant="h6" gutterBottom color="text.primary">カテゴリ設定</Typography>
         {articles.length === 0 ? (
           <Typography variant="body1" color="text.secondary">
             記事がありません。前のタブで記事を選択してください。

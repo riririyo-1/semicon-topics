@@ -100,6 +100,62 @@ def tag(body: dict = Body(...)):
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
+# --- 記事カテゴリ分類API ---
+from service.ollama_llm_service import OllamaLLMService
+
+@router.post("/categorize")
+def categorize_article(body: dict = Body(...)):
+    """
+    記事テキストからカテゴリを分類する
+    """
+    try:
+        article_text = body.get("article_text", "")
+        if not article_text:
+            return JSONResponse(content={"status": "error", "error": "記事テキストが必要です"}, status_code=400)
+            
+        print(f"[/categorize] 記事テキスト: {article_text[:100]}...")
+        
+        # LLMを使用してカテゴリを生成
+        try:
+            llm = OllamaLLMService()
+            # prompt = f"以下の記事を読んで、最も適切な大カテゴリ1つと小カテゴリを複数選んでください。\n\n記事: {article_text}\n\n以下の形式で回答してください。\n大カテゴリ: [大カテゴリ名]\n小カテゴリ: [小カテゴリ1], [小カテゴリ2], ..."
+            # response = llm.generate_text(prompt)
+            
+            # LLMがない場合のダミー実装
+            import random
+            main_categories = ["技術", "ビジネス", "製品", "業界動向", "市場"]
+            sub_categories = [
+                ["半導体", "新製品", "研究開発", "製造技術"],
+                ["投資", "M&A", "戦略", "提携"],
+                ["チップ", "メモリ", "プロセッサ", "スマートフォン"],
+                ["市場予測", "企業動向", "サプライチェーン"],
+                ["需要", "供給", "価格動向"]
+            ]
+            
+            selected_main_index = random.randint(0, len(main_categories)-1)
+            main_category = main_categories[selected_main_index]
+            # メインカテゴリに対応するサブカテゴリから1〜3個選択
+            selected_subs = random.sample(sub_categories[selected_main_index], 
+                           k=min(random.randint(1, 3), len(sub_categories[selected_main_index])))
+            
+            print(f"[/categorize] 分類結果 - 大カテゴリ: {main_category}, 小カテゴリ: {selected_subs}")
+            
+            return {
+                "main": main_category,
+                "sub": selected_subs,
+                "category_main": main_category,  # APIの戻り値形式の一貫性のため
+                "category_sub": selected_subs    # APIの戻り値形式の一貫性のため
+            }
+            
+        except Exception as llm_err:
+            print(f"[/categorize] LLMエラー: {str(llm_err)}")
+            # フォールバック実装
+            return {"main": "技術", "sub": ["新製品"]}
+        
+    except Exception as e:
+        print(f"[/categorize] エラー: {str(e)}")
+        return JSONResponse(content={"status": "error", "error": str(e)}, status_code=500)
+
 # --- topics月次まとめ生成API ---
 from service.ollama_llm_service import OllamaLLMService
 

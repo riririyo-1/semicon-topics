@@ -71,7 +71,7 @@ export default function ArticlesPage() {
   const chipColor = theme.palette.getContrastText(theme.palette.secondary.main);
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: "auto", mt: 4 }}>
+    <Box sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom color="text.primary">記事一覧</Typography>
 
       <Stack direction="row" spacing={2} mb={2} alignItems="center">
@@ -123,10 +123,10 @@ export default function ArticlesPage() {
           {tableView ? (
             <>
               <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
-                <Table size="small" stickyHeader>
+                <Table size="small" stickyHeader sx={{ tableLayout: 'fixed', width: '100%' }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell padding="checkbox">
+                      <TableCell padding="checkbox" sx={{ width: '40px' }}>
                         <input
                           type="checkbox"
                           checked={selectedIds.length > 0 && selectedIds.length === pagedArticles.length}
@@ -139,11 +139,11 @@ export default function ArticlesPage() {
                           }}
                         />
                       </TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary }}>日付</TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary }}>タイトル</TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary }}>出展元</TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary, maxWidth: 320, whiteSpace: "normal" }}>要約</TableCell>
-                      <TableCell sx={{ color: theme.palette.text.primary }}>ラベル</TableCell>
+                      <TableCell sx={{ width: '100px', color: theme.palette.text.primary }}>日付</TableCell>
+                      <TableCell sx={{ width: '300px', color: theme.palette.text.primary }}>タイトル</TableCell>
+                      <TableCell sx={{ width: '150px', color: theme.palette.text.primary }}>出展元</TableCell>
+                      <TableCell sx={{ width: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: theme.palette.text.primary }}>要約</TableCell>
+                      <TableCell sx={{ width: '200px' }}>ラベル</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -154,7 +154,7 @@ export default function ArticlesPage() {
                     ) : (
                       pagedArticles.map((a) => (
                         <TableRow key={a.id} selected={selectedIds.includes(a.id)}>
-                          <TableCell padding="checkbox">
+                          <TableCell padding="checkbox" sx={{ width: '40px' }}>
                             <input
                               type="checkbox"
                               checked={selectedIds.includes(a.id)}
@@ -167,8 +167,8 @@ export default function ArticlesPage() {
                               }}
                             />
                           </TableCell>
-                          <TableCell sx={{ color: theme.palette.text.primary }}>{a.published ? new Date(a.published).toLocaleDateString() : ""}</TableCell>
-                          <TableCell sx={{ color: theme.palette.text.primary }}>
+                          <TableCell sx={{ width: '100px', color: theme.palette.text.primary }}>{a.published ? new Date(a.published).toLocaleDateString() : ""}</TableCell>
+                          <TableCell sx={{ width: '300px', color: theme.palette.text.primary }}>
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                               <Link href={`/articles/${a.id}`} passHref style={{ color: theme.palette.primary.main, textDecoration: 'none', fontWeight: 500 }}>
                                 {a.title}
@@ -184,11 +184,11 @@ export default function ArticlesPage() {
                               </Button>
                             </Box>
                           </TableCell>
-                          <TableCell sx={{ color: theme.palette.text.primary }}>{a.source}</TableCell>
-                          <TableCell sx={{ color: theme.palette.text.primary, maxWidth: 320, whiteSpace: "normal" }}>
+                          <TableCell sx={{ width: '150px', color: theme.palette.text.primary }}>{a.source}</TableCell>
+                          <TableCell sx={{ width: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: theme.palette.text.primary }}>
                             {a.summary ? a.summary.slice(0, 80) + (a.summary.length > 80 ? "..." : "") : ""}
                           </TableCell>
-                          <TableCell>
+                          <TableCell sx={{ width: '200px', overflow: 'hidden' }}>
                             {a.labels && a.labels.map((label) => (
                               <Chip key={label} label={label} size="small" sx={{ mr: 0.5, mb: 0.5, bgcolor: chipBg, color: chipColor }} />
                             ))}

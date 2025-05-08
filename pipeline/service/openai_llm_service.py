@@ -15,9 +15,9 @@ class OpenAILLMService(LLMInterface):
             raise RuntimeError('OPENAI_API_KEY is not set')
         self.llm = ChatOpenAI(
             openai_api_key=self.api_key,
-            model_name="gpt-4o",
-            temperature=0.2,
-            max_tokens=512,
+            model_name="gpt-4o-mini",       # GPT-4o mini を指定
+            # max_tokens=512,               # 必要に応じて調整
+            # temperature=0.5               # 応答の多様性を設定（任意）
         )
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))

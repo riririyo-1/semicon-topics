@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { 
-  Container, Box, Typography, CircularProgress, Alert, 
-  useTheme 
-} from '@mui/material';
+import { Box, Typography, Alert, CircularProgress, Stack, useTheme } from '@mui/material';
+
 import { useParams } from 'next/navigation';
 import EditTabs from './components/EditTabs';
 import { useTopicStore } from '../../../../stores/topicStore';
@@ -34,7 +32,6 @@ export default function EditTopicsPage() {
   }, [id, resetState, loadTopic]);
   
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom sx={{ color: theme.palette.text.primary }}>
           {id === 'new' ? '新規TOPICS作成' : 'TOPICS編集'}
@@ -54,6 +51,5 @@ export default function EditTopicsPage() {
           <EditTabs />
         )}
       </Box>
-    </Container>
   );
 }

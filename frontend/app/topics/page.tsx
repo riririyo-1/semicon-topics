@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Box, Typography, Container, Alert, CircularProgress, Stack, useTheme } from '@mui/material';
+import { Box, Typography, Alert, CircularProgress, Stack, useTheme } from '@mui/material';
 import useSWR from 'swr';
 import { CreateTopicButton } from './components/CreateTopicButton';
 import { TopicsList, Topic } from './components/TopicsList';
@@ -25,34 +25,32 @@ export default function TopicsPage() {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ color: theme.palette.text.primary }}>
-            TOPICS配信管理
-          </Typography>
-          <CreateTopicButton />
-        </Stack>
-        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-          <Box sx={{ flexGrow: 1 }}>
-            <TopicSearch inputValue={searchInput} onInputChange={setSearchInput} onSearch={handleSearch} />
-          </Box>
-        </Stack>
-        {/* エラー表示 */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error.message || 'TOPICSの取得中にエラーが発生しました'}
-          </Alert>
-        )}
-        {/* ローディング表示 */}
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          topics && <TopicsList topics={topics} />
-        )}
-      </Box>
-    </Container>
+    <Box sx={{ my: 4 }}>
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ color: theme.palette.text.primary }}>
+          TOPICS配信管理
+        </Typography>
+        <CreateTopicButton />
+      </Stack>
+      <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+        <Box sx={{ flexGrow: 1 }}>
+          <TopicSearch inputValue={searchInput} onInputChange={setSearchInput} onSearch={handleSearch} />
+        </Box>
+      </Stack>
+      {/* エラー表示 */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error.message || 'TOPICSの取得中にエラーが発生しました'}
+        </Alert>
+      )}
+      {/* ローディング表示 */}
+      {isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        topics && <TopicsList topics={topics} />
+      )}
+    </Box>
   );
 }

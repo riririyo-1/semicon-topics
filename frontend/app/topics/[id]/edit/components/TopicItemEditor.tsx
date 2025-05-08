@@ -53,7 +53,7 @@ const TopicItemEditor: React.FC<TopicItemEditorProps> = ({ article }) => {
         {/* @ts-ignore */}
         <Grid item xs={12}>
           <Typography variant="subtitle1">
-            <Link href={article.url} target="_blank" rel="noopener noreferrer" sx={{ display: 'flex', alignItems: 'center' }}>
+            <Link href={article.url} target="_blank" rel="noopener noreferrer" sx={{ display: 'flex', alignItems: 'center', color: 'primary.main' }}>
               {article.title}
               <OpenInNewIcon fontSize="small" sx={{ ml: 0.5 }} />
             </Link>
@@ -73,7 +73,7 @@ const TopicItemEditor: React.FC<TopicItemEditorProps> = ({ article }) => {
             ))}
           </Stack>
           
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.primary" sx={{ mb: 2 }}>
             {article.summary}
           </Typography>
         </Grid>
